@@ -232,6 +232,14 @@ body.in-player .topbar { padding-top: 10px; padding-bottom: 6px; }
 .snap-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
 .snap-list small { display: block; }
 #snap-edit[hidden] { display: none; }
+.snap-mode { flex-wrap: wrap; align-items: center; margin-top: 6px; }
+.snap-mode label.seg { display: inline-flex; align-items: center; gap: 6px; }
+.snap-mode label.seg:has(input:checked) { background: var(--amber); color: #1a1205; }
+.snap-mode input[type="radio"] { accent-color: #1a1205; margin: 0; }
+.snap-boxset { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px 14px; border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px 10px; margin: 0; min-width: 0; }
+.snap-boxset legend { font: 600 14px var(--body); padding: 0 4px; }
+#snap-a-set { border-color: rgba(79,195,247,.55); }
+#snap-set { border-color: rgba(255,94,168,.55); }
 .studio-source { display: flex; margin: 4px 0 12px; }
 #view-studio .lede a { color: var(--rain); }
 .album-studio .studio-row { gap: 8px; }

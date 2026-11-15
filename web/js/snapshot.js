@@ -22,7 +22,34 @@
   const clean = (s, n) => String(s).replace(/[<>"&]/g, "").slice(0, n);
 
   // img/src/file: the picture in the editor; editing: index of the saved picture being edited (-1 = new upload)
-  const sn = { img: null, src: null, file: "", editing: -1, mode: "area",
+  // scale: how colours become numbers. "legend" = the picture's colour bar (marked by the user);
+  // without a legend: "rainbow" (blue → green → yellow → red = low → high), "dark" or "light" (relative 0–100)
+  const SCALES = {
+    legend:  { label: "The picture has a colour legend (colour bar): I will mark it" },
+    rainbow: { label: "No legend: blue → green → yellow → red means low → high", hint: w => `redder colour = more ${w}`,
+               note: w => `Higher notes = colours further along blue → green → yellow → red, which on this picture means more ${w}. Black, grey and white count as none, so a slice with only a few coloured spots sounds low.` },
+    dark:    { label: "No legend: darker means higher", hint: w => `darker = more ${w}`,
+               note: w => `Higher notes = darker colours, which on this picture means more ${w}.` },
+    light:   { label: "No legend: lighter means higher", hint: w => `lighter = more ${w}`,
+               note: w => `Higher notes = lighter colours, which on this picture means more ${w}.` },
+  };
+  const lum = (r, g, b) => (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  /** 0–1 position on a no-legend scale, or null for pixels that carry no value. */
+  const T_OF = {
+    rainbow: (r, g, b) => {
+      const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+      if (!mx || d / mx < 0.3 || mx < 64) return null; // grey, black, white: nothing
+      let h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      h *= 60; if (h < 0) h += 360;
+      if (h > 300) return 1;    // magenta just past red
+      if (h > 240) return null; // purple: not on the scale
+      return (240 - h) / 240;   // blue 0 · cyan .25 · green .5 · yellow .75 · red 1
+    },
+    dark: (r, g, b) => 1 - lum(r, g, b),
+    light: (r, g, b) => lum(r, g, b),
+  };
+
+  const sn = { img: null, src: null, file: "", editing: -1, mode: "area", scale: "legend",
                area: Object.assign({}, WHOLE), legend: { x: 10, y: 88, w: 80, h: 6 }, layers: [] };
 
   /* ---------- decoding ---------- */
@@ -55,12 +82,14 @@
   }
 
   /** Values per slice of the map area (west → east): mean legend value of matching pixels, null if too few match. */
-  function decode(img, area, legend, reverse, low, high) {
-    const px = pixels(img), pal = palette(px, legend, reverse);
+  function decode(img, area, legend, reverse, low, high, scale) {
+    const px = pixels(img), tOf = T_OF[scale];
+    if (tOf) legend = { x: -1, y: -1, w: 0, h: 0 }; // no legend to skip
+    const pal = tOf ? [] : palette(px, legend, reverse);
     // a colour bar changes colour along its length and holds many different colours;
     // a box on plain background or on text does not
-    const spread = Math.max(...pal.map(p => Math.hypot(p[0] - pal[0][0], p[1] - pal[0][1], p[2] - pal[0][2])));
-    const distinct = new Set(pal.map(p => p.map(c => Math.round(c / 24)).join(","))).size;
+    const spread = tOf ? 999 : Math.max(...pal.map(p => Math.hypot(p[0] - pal[0][0], p[1] - pal[0][1], p[2] - pal[0][2])));
+    const distinct = tOf ? 99 : new Set(pal.map(p => p.map(c => Math.round(c / 24)).join(","))).size;
     if (spread < 60 || distinct < 8) return { values: Array(SLICES).fill(null), matched: 0, flat: true };
     const lx0 = legend.x / 100 * px.w, lx1 = (legend.x + legend.w) / 100 * px.w, ly0 = legend.y / 100 * px.h, ly1 = (legend.y + legend.h) / 100 * px.h;
     const ax0 = Math.max(0, Math.floor(area.x / 100 * px.w)), ax1 = Math.min(px.w, Math.ceil((area.x + area.w) / 100 * px.w));
@@ -72,6 +101,7 @@
       const o = (y * px.w + x) * 4, s = Math.min(SLICES - 1, Math.floor((x - ax0) / aw * SLICES));
       seen[s]++;
       if (px.d[o + 3] < 128) continue;
+      if (tOf) { const t = tOf(px.d[o], px.d[o + 1], px.d[o + 2]); if (t !== null) { sum[s] += t; cnt[s]++; } continue; }
       let best = Infinity, bi = 0;
       for (let i = 0; i < PALETTE; i++) {
         const p = pal[i], dr = px.d[o] - p[0], dg = px.d[o + 1] - p[1], db = px.d[o + 2] - p[2];
@@ -81,7 +111,12 @@
       if (best <= MATCH) { sum[s] += bi / (PALETTE - 1); cnt[s]++; }
     }
     const values = [];
-    for (let s = 0; s < SLICES; s++) values.push(cnt[s] >= 5 ? +(low + (sum[s] / cnt[s]) * (high - low)).toPrecision(4) : null); // sparse maps (e.g. fires) are fine
+    // with a legend: mean value of the matching pixels (the legend has its own colour for "none").
+    // without a legend: black/grey/white mean "none" and count as 0, so a slice with a few spots sounds low.
+    for (let s = 0; s < SLICES; s++) {
+      const mean = tOf ? sum[s] / Math.max(1, seen[s]) : sum[s] / Math.max(1, cnt[s]);
+      values.push(cnt[s] >= 5 ? +(low + mean * (high - low)).toPrecision(4) : null); // sparse maps (e.g. fires) are fine
+    }
     const matched = cnt.reduce((a, b) => a + b, 0) / Math.max(1, seen.reduce((a, b) => a + b, 0));
     // the player shows only the map area
     const crop = document.createElement("canvas");
@@ -89,6 +124,12 @@
     crop.getContext("2d").drawImage(px.canvas, ax0, ay0, crop.width, crop.height, 0, 0, crop.width, crop.height);
     return { values, matched, picture: { url: crop.toDataURL("image/jpeg", 0.9), aspect: crop.width / crop.height } };
   }
+
+  const whatOf = l => l.what || "of what the map shows";
+  const noteFor = l => (l.scale || "legend") === "legend"
+    ? `Higher notes = higher values on the picture's legend (${l.low} to ${l.high} ${l.units})${l.what ? `, which means more ${l.what}` : ""}.`
+    : SCALES[l.scale].note(whatOf(l)) + " Levels are relative (0–100) because the picture has no legend.";
+  const hintFor = l => (l.scale || "legend") === "legend" ? `higher legend value = higher note${l.what ? ` (more ${l.what})` : ""}` : SCALES[l.scale].hint(l.what || "of it");
 
   /* ---------- song ---------- */
   const pct = b => `left ${b.x}%, top ${b.y}%, ${b.w}% × ${b.h}%`;
@@ -105,16 +146,18 @@
       limits: [
         "EchoSphere cannot check where an uploaded picture comes from. Use NASA visualizations (for example EIC snapshots) for real data.",
         "Each picture's map area is read west → east in 32 slices; a note is the average legend value of the pixels in that slice. Pixels that match no legend colour (text, borders, background) are ignored, and a slice with almost no matches is silent.",
+        "Pictures without a legend give relative levels (0–100) from their colours, not real units.",
         "Values assume the legend is linear between the low and high values you typed. Logarithmic legends, compressed screenshots and map projections make values less exact.",
         "Your pictures never leave your device, so snapshot songs cannot be shared as a link. Use Save as WAV to keep the music.",
       ],
       layers: sn.layers.map((l, i) => ({
         id: `snap${i + 1}`, name: l.name, icon: "🖼️", color: COLORS[i], units: l.units || "legend units",
         values: l.values, legendStep: Math.abs(l.high - l.low) / 20, register: REGISTERS[i], pan: PANS[i],
-        defaults: DEFAULTS[i], sourceKind: "upload", picture: l.picture,
-        describe: `Decoded from your picture "${l.file}". Higher notes mean higher values on its legend (${l.low} to ${l.high} ${l.units}).`,
+        defaults: DEFAULTS[i], sourceKind: "upload", picture: l.picture, hint: hintFor(l),
+        describe: `Decoded from your picture "${l.file}". ${noteFor(l)}`,
         source: { name: `Your picture: ${l.file}`, url: "#" },
-        method: `Map area ${pct(l.area)}; legend ${pct(l.legend)}, read ${l.reverse ? "high → low" : "low → high"} as ${l.low} to ${l.high} ${l.units}. ${Math.round(l.matched * 100)}% of the area's pixels matched a legend colour.`,
+        method: l.scale !== "legend" ? `Map area ${pct(l.area)}; no legend: ${SCALES[l.scale].label.replace("No legend: ", "")} (relative 0–100). ${Math.round(l.matched * 100)}% of the area's pixels had a colour on this scale.` :
+          `Map area ${pct(l.area)}; legend ${pct(l.legend)}, read ${l.reverse ? "high → low" : "low → high"} as ${l.low} to ${l.high} ${l.units}. ${Math.round(l.matched * 100)}% of the area's pixels matched a legend colour.`,
       })),
     };
   }
@@ -143,21 +186,25 @@
       <input type="file" id="snap-file" accept="image/png,image/jpeg,image/webp,image/gif">
       <div id="snap-edit" hidden>
         <p class="hint" id="snap-help">① Choose the <b>map area</b> you want to hear (start: the whole picture). ② Mark the <b>colour legend</b>: cover only its coloured part, not "no data" squares or arrows. Drag on the picture, or type the boxes below (in % of the picture).</p>
+        <fieldset class="snap-boxset snap-scale" id="snap-scale-set"><legend>How should the colours be read?</legend>
+          ${Object.entries(SCALES).map(([k, v]) => `<label class="ctl"><input type="radio" name="snap-scale" value="${k}"${k === "legend" ? " checked" : ""}> ${v.label}</label>`).join("")}
+          <label class="ctl">What do the colours show? <input type="text" id="snap-what" maxlength="30" placeholder="e.g. rain, fire, heat"></label>
+        </fieldset>
         <div class="toggle snap-mode" role="radiogroup" aria-label="What you draw on the picture">
           <label class="seg small"><input type="radio" name="snap-mode" value="area" checked> ① Map area</label>
-          <label class="seg small"><input type="radio" name="snap-mode" value="legend"> ② Legend</label>
+          <label class="seg small legend-only"><input type="radio" name="snap-mode" value="legend"> ② Legend</label>
           <button type="button" class="ghost" id="snap-whole">Use whole picture as area</button>
         </div>
         <div class="snap-canvas-wrap"><canvas id="snap-canvas" role="img" aria-describedby="snap-help"></canvas></div>
         <div class="snap-grid">
           ${boxInputs("snap-a", "① Map area (cyan)")}
           ${boxInputs("snap", "② Colour legend (pink)")}
-          <label class="ctl">Legend low value <input type="number" id="snap-low" value="0" step="any"></label>
-          <label class="ctl">Legend high value <input type="number" id="snap-high" value="100" step="any"></label>
-          <label class="ctl">Units <input type="text" id="snap-units" placeholder="e.g. °C, ppm, mm"></label>
+          <label class="ctl legend-only">Legend low value <input type="number" id="snap-low" value="0" step="any"></label>
+          <label class="ctl legend-only">Legend high value <input type="number" id="snap-high" value="100" step="any"></label>
+          <label class="ctl legend-only">Units <input type="text" id="snap-units" placeholder="e.g. °C, ppm, mm"></label>
           <label class="ctl">Layer name <input type="text" id="snap-name" maxlength="40"></label>
         </div>
-        <label class="ctl"><input type="checkbox" id="snap-rev"> The legend's high end is on the left (or top)</label>
+        <label class="ctl legend-only"><input type="checkbox" id="snap-rev"> The legend's high end is on the left (or top)</label>
         <div class="studio-row"><button type="button" class="ghost" id="snap-add">Add as layer</button><button type="button" class="ghost" id="snap-cancel">Cancel</button></div>
       </div>
       <ul id="snap-list" class="snap-list"></ul>
@@ -170,6 +217,10 @@
     document.querySelectorAll('input[name="snap-mode"]').forEach(r => r.addEventListener("change", () => {
       sn.mode = r.value; draw();
       live(r.value === "area" ? "Dragging on the picture now sets the map area." : "Dragging on the picture now sets the colour legend.");
+    }));
+    document.querySelectorAll('input[name="snap-scale"]').forEach(r => r.addEventListener("change", () => {
+      setScale(r.value);
+      live(r.value === "legend" ? "Mark the colour legend in step ②." : `${SCALES[r.value].label}. No legend box is used; levels are relative.`);
     }));
     $("#snap-whole").addEventListener("click", () => { sn.area = Object.assign({}, WHOLE); fillInputs(); draw(); live("Map area: the whole picture."); });
     $("#snap-add").addEventListener("click", saveLayer);
@@ -206,10 +257,10 @@
     const src = URL.createObjectURL(f), img = new Image();
     img.onload = () => {
       sn.editing = -1; sn.area = Object.assign({}, WHOLE);
-      $("#snap-name").value = `Picture ${sn.layers.length + 1}`;
+      $("#snap-name").value = `Picture ${sn.layers.length + 1}`; $("#snap-what").value = "";
       openEditor(img, src, clean(f.name, 60));
-      setMode("area");
-      status(`Loaded ${sn.file}. ① Drag over the area you want to hear, or keep the whole picture. ② Then switch to Legend and mark the colour bar, and type its low and high values.`);
+      setMode("area"); setScale("legend");
+      status(`Loaded ${sn.file}. First choose how its colours should be read: with its colour legend, or without one. Then drag over the map area you want to hear.`);
       $("#snap-a-x").focus();
     };
     img.onerror = () => { URL.revokeObjectURL(src); status("This picture could not be opened. Try a PNG or JPG."); };
@@ -224,13 +275,22 @@
     img.onload = () => {
       sn.editing = i; sn.area = Object.assign({}, l.area); sn.legend = Object.assign({}, l.legend);
       $("#snap-low").value = l.low; $("#snap-high").value = l.high; $("#snap-units").value = l.units;
-      $("#snap-name").value = l.name; $("#snap-rev").checked = l.reverse;
+      $("#snap-name").value = l.name; $("#snap-rev").checked = l.reverse; $("#snap-what").value = l.what || "";
       openEditor(img, l.src, l.file);
-      setMode("area");
+      setMode("area"); setScale(l.scale || "legend");
       status(`Editing ${l.name}. Change the map area, legend or values, then press Save changes.`);
       $("#snap-a-x").focus();
     };
     img.src = l.src;
+  }
+
+  /** Legend vs no-legend: hide the legend box and its fields when the picture has no legend. */
+  function setScale(k) {
+    sn.scale = k;
+    document.querySelectorAll('input[name="snap-scale"]').forEach(r => { r.checked = r.value === k; });
+    const noLegend = k !== "legend";
+    document.querySelectorAll("#snap-edit .legend-only, #snap-set").forEach(el => { el.hidden = noLegend; });
+    if (noLegend && sn.mode === "legend") setMode("area"); else draw();
   }
 
   function setMode(m) { sn.mode = m; document.querySelectorAll('input[name="snap-mode"]').forEach(r => { r.checked = r.value === m; }); draw(); }
@@ -246,9 +306,11 @@
     g.beginPath(); g.rect(0, 0, W, H); g.rect(a.x / 100 * W, a.y / 100 * H, a.w / 100 * W, a.h / 100 * H); g.fill("evenodd");
     g.lineWidth = sn.mode === "area" ? 4 : 2; g.strokeStyle = "#4FC3F7"; g.setLineDash([]);
     g.strokeRect(a.x / 100 * W, a.y / 100 * H, a.w / 100 * W, a.h / 100 * H);
-    g.lineWidth = sn.mode === "legend" ? 4 : 2; g.strokeStyle = "#FF5EA8"; g.setLineDash([8, 5]);
-    g.strokeRect(L.x / 100 * W, L.y / 100 * H, L.w / 100 * W, L.h / 100 * H);
-    c.setAttribute("aria-label", `Your picture ${sn.file}. Map area: ${pct(a)}. Legend box: ${pct(L)}.`);
+    if (sn.scale === "legend") {
+      g.lineWidth = sn.mode === "legend" ? 4 : 2; g.strokeStyle = "#FF5EA8"; g.setLineDash([8, 5]);
+      g.strokeRect(L.x / 100 * W, L.y / 100 * H, L.w / 100 * W, L.h / 100 * H);
+    }
+    c.setAttribute("aria-label", `Your picture ${sn.file}. Map area: ${pct(a)}.${sn.scale === "legend" ? ` Legend box: ${pct(L)}.` : " No legend box."}`);
   }
 
   function pointer() {
@@ -258,7 +320,7 @@
     c.addEventListener("pointermove", e => {
       if (!start) return; const p = pos(e), r1 = v => Math.round(v * 2) / 2;
       const b = { x: r1(Math.min(start.x, p.x)), y: r1(Math.min(start.y, p.y)), w: Math.max(0.5, r1(Math.abs(p.x - start.x))), h: Math.max(0.5, r1(Math.abs(p.y - start.y))) };
-      if (sn.mode === "area") sn.area = b; else sn.legend = b;
+      if (sn.mode === "area" || sn.scale !== "legend") sn.area = b; else sn.legend = b;
       fillInputs(); draw();
     });
     c.addEventListener("pointerup", () => { start = null; });
@@ -268,26 +330,28 @@
 
   function saveLayer() {
     if (!sn.img) return;
-    const low = parseFloat($("#snap-low").value), high = parseFloat($("#snap-high").value);
+    const scale = sn.scale, noLegend = scale !== "legend";
+    const low = noLegend ? 0 : parseFloat($("#snap-low").value), high = noLegend ? 100 : parseFloat($("#snap-high").value);
     if (!isFinite(low) || !isFinite(high) || low === high) { status("Type the legend's low and high values (they must be different numbers)."); $("#snap-low").focus(); return; }
     const area = Object.assign({}, sn.area), legend = Object.assign({}, sn.legend);
     if (outside(area) || area.w < 3 || area.h < 3) { status("The map area is outside the picture or too small. Check its Left, Top, Width and Height."); $("#snap-a-x").focus(); return; }
-    if (outside(legend)) { status("The legend box is outside the picture. Check its Left, Top, Width and Height."); $("#snap-x").focus(); return; }
+    if (!noLegend && outside(legend)) { status("The legend box is outside the picture. Check its Left, Top, Width and Height."); $("#snap-x").focus(); return; }
     const reverse = $("#snap-rev").checked;
-    const { values, matched, flat, picture } = decode(sn.img, area, legend, reverse, low, high);
+    const { values, matched, flat, picture } = decode(sn.img, area, legend, reverse, low, high, scale);
     const n = values.filter(v => v !== null).length;
     if (flat) { status("The legend box does not look like a colour bar: its colour hardly changes. Switch to ② Legend and move the box onto the legend's colours."); $("#snap-x").focus(); return; }
-    if (n < 2 || matched < 0.005) { status(`Only ${Math.round(matched * 100)}% of the map area matches the legend colours, too little to make music. Check that the legend box covers only the colour bar, and that the map area shows the map.`); $("#snap-x").focus(); return; }
+    if (n < 2 || matched < 0.005) { status(noLegend ? `Only ${Math.round(matched * 100)}% of the map area has colours on this scale, too little to make music. Try another "How should the colours be read?" option, or a bigger map area.` : `Only ${Math.round(matched * 100)}% of the map area matches the legend colours, too little to make music. Check that the legend box covers only the colour bar, and that the map area shows the map.`); $("#snap-x").focus(); return; }
     const name = clean($("#snap-name").value.trim() || `Picture ${sn.layers.length + 1}`, 40);
-    const units = clean($("#snap-units").value.trim(), 20);
-    const layer = { name, units, low, high, reverse, area, legend, values, matched, picture, file: sn.file, src: sn.src };
+    const what = clean($("#snap-what").value.trim(), 30);
+    const units = noLegend ? `relative ${what ? what + " " : ""}level (0–100)` : clean($("#snap-units").value.trim(), 20);
+    const layer = { name, units, low, high, reverse, area, legend, values, matched, picture, file: sn.file, src: sn.src, scale, what };
     const edited = sn.editing >= 0;
     if (edited) sn.layers[sn.editing] = layer; else sn.layers.push(layer);
     sn.src = null; // now owned by the layer
     closeEditor();
     publish();
     const vs = values.filter(v => v !== null);
-    status(`${edited ? "Saved changes to" : "Added"} ${name}: ${n} of ${SLICES} slices have data, from ${Math.min(...vs)} to ${Math.max(...vs)} ${units}. ${Math.round(matched * 100)}% of the map area matched the legend. ` +
+    status(`${edited ? "Saved changes to" : "Added"} ${name}: ${n} of ${SLICES} slices have data, from ${Math.min(...vs)} to ${Math.max(...vs)} ${units}. ${Math.round(matched * 100)}% of the map area ${noLegend ? "had colours on the scale" : "matched the legend"}. ${noteFor(layer)} ` +
       `"Your snapshots" is the chosen source in step 1: pick its layers below.${!edited && sn.layers.length < MAX_PICS ? " You can also add another picture." : ""}`);
     const first = document.querySelector('.studio-opt[data-key^="snapshot:"] input'); if (first) first.focus();
   }
@@ -300,7 +364,7 @@
   }
 
   function renderList() {
-    $("#snap-list").innerHTML = sn.layers.map((l, i) => `<li><span>🖼️ <b>${esc(l.name)}</b> <small class="muted">${esc(l.file)} · ${l.low} to ${l.high} ${esc(l.units)} · ${Math.round(l.matched * 100)}% matched${l.area.w < 100 || l.area.h < 100 ? " · part of the picture" : ""}</small></span>
+    $("#snap-list").innerHTML = sn.layers.map((l, i) => `<li><span>🖼️ <b>${esc(l.name)}</b> <small class="muted">${esc(noteFor(l))}</small><small class="muted">${esc(l.file)} · ${l.scale === "legend" ? `${l.low} to ${l.high} ${esc(l.units)}` : "no legend, relative levels"} · ${Math.round(l.matched * 100)}% matched${l.area.w < 100 || l.area.h < 100 ? " · part of the picture" : ""}</small></span>
       <span class="my-actions"><button type="button" class="ghost" data-act="edit" data-i="${i}" aria-label="Edit ${esc(l.name)}">Edit</button>
       <button type="button" class="ghost" data-act="remove" data-i="${i}" aria-label="Remove ${esc(l.name)}">Remove</button></span></li>`).join("");
     $("#snap-file").disabled = sn.layers.length >= MAX_PICS;

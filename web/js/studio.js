@@ -27,7 +27,7 @@
   const sources = () => [...new Map(CATALOG.map(e => [e.song.id, e.song])).values()];
   const chosen = () => CATALOG.filter(e => st.selected.includes(e.key));
   const famOf = k => SAMPLES[k].family;
-  const instrumentKeys = Object.keys(SAMPLES).filter(k => !ACCENTS.has(k));
+  const genreInstruments = g => GENRES[g].instruments; // only the chosen genre's instruments are offered
 
   /** Why a layer cannot be picked right now ("" = it can). */
   function blockReason(e) {
@@ -50,10 +50,11 @@
     const changes = [], used = new Set();
     for (const e of chosen()) {
       const pref = GENRES[st.genre].layers[e.layer.id] || (e.layer.defaults || {})[st.genre];
-      const wanted = reset || !st.instr[e.key] ? pref : st.instr[e.key];
+      const list = genreInstruments(st.genre);
+      const wanted = reset || !st.instr[e.key] || !list.includes(st.instr[e.key]) ? pref : st.instr[e.key];
       let k = wanted;
-      if (!k || used.has(famOf(k))) {
-        k = [pref, ...instrumentKeys].find(x => x && !used.has(famOf(x)));
+      if (!k || !list.includes(k) || used.has(famOf(k))) {
+        k = [pref, ...list].find(x => x && list.includes(x) && !used.has(famOf(x)));
         if (wanted) changes.push(`${e.layer.name} changed to ${SAMPLES[k].label}`);
       }
       st.instr[e.key] = k; used.add(famOf(k));
@@ -185,7 +186,7 @@
     if (!st.selected.length) { host.innerHTML = `<p class="muted">Pick a layer first.</p>`; return; }
     host.innerHTML = chosen().map((e, i) => `
       <label class="studio-instr">${e.layer.icon} ${e.layer.name}
-        <select data-key="${e.key}" id="studio-sel-${i}">${instrumentKeys.map(k => {
+        <select data-key="${e.key}" id="studio-sel-${i}">${genreInstruments(st.genre).map(k => {
           const by = familyUsedBy(k, e.key);
           return `<option value="${k}"${k === st.instr[e.key] ? " selected" : ""}${by ? " disabled" : ""}>${SAMPLES[k].label} (${SAMPLES[k].family}${by ? `, used by ${by}` : ""})</option>`;
         }).join("")}</select>
@@ -434,6 +435,17 @@
     live(`Studio. Choose a source and pick 1 to ${MAX} of its layers, a genre and an instrument for each layer. You can also start from a real NASA event.`);
   }
 
+  /** Player genre switch for a Studio song: re-pick instruments from the new genre, families kept unique. */
+  function retune(song, genre) {
+    const list = genreInstruments(genre), used = new Set();
+    for (const l of song.layers) {
+      const pref = GENRES[genre].layers[l.id] || (l.defaults || {})[genre];
+      let k = list.includes(l.instrument) && !used.has(famOf(l.instrument)) ? l.instrument : pref;
+      if (!k || !list.includes(k) || used.has(famOf(k))) k = list.find(x => !used.has(famOf(x)));
+      l.instrument = k; used.add(famOf(k));
+    }
+  }
+
   /** Open the Studio straight at the picture tool. */
   function showPictures() {
     showStudio();
@@ -471,6 +483,6 @@
   // player "Copy link" button (shown for Studio songs only)
   $("#btn-share").addEventListener("click", () => copyLink(recipe(), $("#save-status")));
   window.addEventListener("hashchange", openFromHash);
-  window.EchoStudio = { showStudio, showPictures, makeSong, state: st, catalog: CATALOG, recipe, songLink, addSource, removeSource };
+  window.EchoStudio = { showStudio, showPictures, retune, makeSong, state: st, catalog: CATALOG, recipe, songLink, addSource, removeSource };
   openFromHash();
 })();

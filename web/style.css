@@ -239,6 +239,11 @@ body.in-player .topbar { padding-top: 10px; padding-bottom: 6px; }
 .snap-boxset { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px 14px; border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px 10px; margin: 0; min-width: 0; }
 .snap-boxset legend { font: 600 14px var(--body); padding: 0 4px; }
 #snap-a-set { border-color: rgba(79,195,247,.55); }
+#snap-edit [hidden] { display: none !important; }
+.snap-scale { grid-template-columns: 1fr; margin: 8px 0; }
+.snap-scale label.ctl { display: flex; align-items: center; gap: 8px; color: var(--text); }
+.snap-scale input[type="radio"] { accent-color: var(--amber); width: 18px; height: 18px; margin: 0; flex: none; }
+.snap-scale input[type="text"] { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 7px 9px; color: var(--text); font: inherit; flex: 1; min-width: 0; }
 #snap-set { border-color: rgba(255,94,168,.55); }
 .studio-source { display: flex; margin: 4px 0 12px; }
 #view-studio .lede a { color: var(--rain); }

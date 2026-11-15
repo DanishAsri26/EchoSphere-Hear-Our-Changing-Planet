@@ -29,10 +29,13 @@
   // Weather layers (event albums, live Studio): rain + temp + humidity = strings/brass/woodwind and
   // keyboard/guitar/synth; temp + humidity + wind = brass/woodwind/percussion and guitar/synth/woodwind.
   const GENRES = {
+    // instruments = what the Studio offers in this genre (4 families each, so up to 4 layers always fit)
     orchestra: { label: "Orchestra", bpm: 100, reverb: 3.2, wet: 0.35, bed: false,
+                 instruments: ["trumpet", "tuba", "bassoon", "harp", "cello", "marimba"],
                  layers: { fire: "trumpet", rain: "harp", co2: "bassoon", sea: "cello",
                            temp: "trumpet", humidity: "bassoon", wind: "marimba" }, accent: "timpani" },
     band:      { label: "Modern Band", bpm: 120, reverb: 1.4, wet: 0.18, bed: true,
+                 instruments: ["saxophone", "electric_piano_1", "guitar-electric", "bass-electric", "pad_2_warm"],
                  layers: { fire: "saxophone", rain: "electric_piano_1", co2: "bass-electric", sea: "pad_2_warm",
                            temp: "guitar-electric", humidity: "pad_2_warm", wind: "saxophone" }, accent: "timpani" },
   };

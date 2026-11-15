@@ -70,7 +70,7 @@
     map.cache = m.frames.map(f => { const im = new Image(); im.src = f.img; return im; }); // preload
     $("#map-a").src = m.frames[0].img; $("#map-a").classList.add("show"); $("#map-b").classList.remove("show"); map.front = "a";
     $("#map-legend").hidden = song.id !== "kuching-2015"; // the global frames already show NASA's own legend
-    $(".map-credit").textContent = m.snapshot ? `Your picture: ${song.layers[0].name} · pink band = slice being played` : "NASA SVS 5012 · fire carbon emissions";
+    $(".map-credit").textContent = m.snapshot ? `Your picture: ${song.layers[0].name}${song.layers[0].hint ? ` · ${song.layers[0].hint}` : ""} · pink band = slice being played` : "NASA SVS 5012 · fire carbon emissions";
     drawOverlay(song, 0, false);
   }
 
@@ -156,6 +156,7 @@
     if (wasPlaying) engine.pause();
     state.genre = genre; state.ready = false; setPlayUI();
     document.querySelectorAll(".genre .seg").forEach(b => b.setAttribute("aria-checked", b.dataset.genre === genre));
+    if (state.song.studio && window.EchoStudio) EchoStudio.retune(state.song, genre); // instruments of this genre only
     await engine.prepare(state.song, genre);
     applyMix();
     renderStrips(); redrawChart(); renderDrawer();

@@ -22,6 +22,14 @@ Story year: **the El Niño of 2015**.
 
 Each song plays in **2 genres**: Orchestra and Modern Band → **4 tracks** in total (Conductor's target).
 
+**Added on 15 Nov (Conductor):** four more albums, all bundled so they play offline.
+| Album | Place | Time steps | Layers |
+|---|---|---|---|
+| 3 "Pacific Drought, 2015" | Viti Levu, Fiji (NASA EONET_212) | 17 weekly steps around the event | Rain · Humidity · Temperature (NASA POWER) |
+| 4 "South America Floods, 2015" | Uruguay River (EONET_259) | 17 weekly steps | Rain · Humidity · Temperature (NASA POWER) |
+| 5 "Black Summer, 2019" | Northern New South Wales (EONET_4542) | 17 weekly steps | Temperature · Humidity · Wind (NASA POWER) |
+| 6 "The Ocean Breathes: Diatoms 1998–2012" | Global ocean (NASA SVS 12009, NOBM model) | 60 quarterly steps, approximate dates | Diatoms (solo), decoded from the video's colours |
+
 Message: *"What burns locally echoes globally."*
 
 ## 3. Users
@@ -52,17 +60,20 @@ Message: *"What burns locally echoes globally."*
 ### 4.2 Should have (if time allows before feature freeze)
 | ID | Requirement |
 |---|---|
-| FR-13 | **Instrument picker** per layer within the chosen genre (e.g. Fire: Trumpet or Violin). |
+| FR-13 | **Instrument picker** per layer within the chosen genre (e.g. Fire: Trumpet or Violin). **Done** in the Studio: only the chosen genre's instruments are offered, and the family rule is enforced. |
 | FR-14 | **Speed control** (0.5×, 1×, 1.5×) and **pitch range control**. |
 | FR-15 | **Keyboard explore mode:** arrow keys step through time; the screen reader speaks the date and each layer's value. |
 | FR-16 | Short **spoken narration** at key moments (e.g. "September 2015: the fires peak"). |
 | FR-17 | **Map view**: the NASA frame for the current step, with the strongest fire areas glowing on the beat (done). |
-| FR-18 | **Custom song ("Studio")**: users build their own song by choosing layers, time range, genre, instrument per layer and tempo, then play and save it (Conductor's request, scope to confirm). |
+| FR-18 | **Custom song ("Studio")**: users build their own song by choosing layers, time range, genre, instrument per layer and tempo, then play and save it (Conductor's request). **Done (cut-down):** choose a source (album, live event or own pictures), pick 1–4 of its layers, a genre and an instrument per layer; play, save as WAV, share as a link, keep in *My songs*. Time range and tempo picker not built (Speed control covers tempo). |
 | FR-19 | **Song from a real event (live)**: in the Studio, the user picks an event type and year, finds an event in NASA EONET, and the app fetches NASA POWER daily weather (rain, temperature, humidity, wind) at the event's location, 8 weeks before to 8 weeks after, as weekly means. Keyless APIs called from the browser; the request URL is kept as each layer's source. Added 15 Nov (Conductor). |
-| FR-20 | **Plain-language event request (LLM)**: user describes the event in words; an LLM only turns it into an event type, place and dates (never data values). Only if time allows: needs an API key, so a small server or proxy, which conflicts with NFR-04. |
+| FR-20 | **Plain-language event request (LLM)**: user describes the event in words; an LLM only turns it into an event type, place and dates (never data values). Only if time allows: needs an API key, so a small server or proxy, which conflicts with NFR-04. **Not built.** |
+| FR-21 | **Music from your own picture ("Use picture/frame")**: upload 1–4 pictures (e.g. EIC snapshots); for each, choose the map area and either mark its colour legend (real values) or pick a no-legend colour rule (relative 0–100); the area is read west → east in 32 slices, one instrument per picture. Pictures never leave the device. **Done.** |
+| FR-22 | **How to listen per album**: every album card has its own guide built from its layers (place, what one note is, each instrument, headphone side, meaning); `H` opens the playing song's guide. **Done.** |
+| FR-23 | **Data-type labels**: every album and layer says where its numbers come from: decoded from a NASA visualization, NASA values behind a visualization, or NASA data with no visualization (and "your picture" in the Studio). **Done.** |
 
 ### 4.3 Won't have (this hackathon)
-- Live colour decoding in the browser (decoding runs offline in Python).
+- Live colour decoding of NASA videos in the browser (albums are decoded offline in Python). Exception: the picture tool (FR-21) decodes the user's own upload in the browser.
 - Air quality layer (no 2015 Southeast Asia map with a readable legend was found).
 - Live API fetching for the two albums (they stay bundled; only FR-19 fetches live), user accounts, a mobile app, testing with blind and low-vision users (stated honestly as future work).
 
@@ -74,6 +85,9 @@ Message: *"What burns locally echoes globally."*
 | Rain, temperature, humidity (Kuching) | NASA POWER daily point API | `data/kuching_2015/rain.json` | Weekly means of daily values |
 | CO₂ | NASA SVS 5024, AIRS CO₂ + `CO2_frames_dates_values.csv` | `data/planet_2015/co2_global_monthly.json`, `data/kuching_2015/co2.json` | NASA's monthly value is used; the decoded Borneo value has an unexplained ~11 ppm offset and is not played |
 | Sea level | NASA GSFC Global Mean Sea Level v5.1 (via NASA STEM spreadsheet) | `data/planet_2015/sea_level_global_monthly.json` | Monthly means; +13.5 mm Jun 2014–May 2016 |
+| Event albums (3–5) | NASA EONET (event date and place) + NASA POWER daily point API | `web/data/event_songs.json`; raw responses in `raw/events/` | Weekly means of daily values, 8 weeks before to 8 weeks after; weather at the event's place, not the event itself |
+| Diatoms (album 6) | NASA SVS 12009, NASA Ocean Biogeochemical Model; video + log colour bar | `data/ocean/diatoms_1998_2012.json` → `web/data/diatom_song.json` | Ocean pixels only, global mean of log10 per frame; 15 yearly blooms over frames 0–615 → 1998–2012, approximate (about ±2 months); quarterly means 0.0137–0.0231 µg chl/l |
+| Live events (Studio) | NASA EONET + NASA POWER, fetched in the browser | not stored | Same method as albums 3–5; the request URL is the layer's source |
 | Covers | SVS 4634 (Indonesia fires 2015), SVS 30975 (sea surface height) | `web/assets/` | Pictures only |
 
 Every file must keep its **source URL, units and method** inside the JSON.

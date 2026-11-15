@@ -1,5 +1,5 @@
 # EchoSphere: Task Tracker
-Updated: 15 Nov 2026, 10:30 AM MYT · Owner key: 🛠 Hacker · 🎨 Hipster · 📣 Hustler · 👤 Conductor
+Updated: 15 Nov 2026, 3:05 PM MYT · Owner key: 🛠 Hacker · 🎨 Hipster · 📣 Hustler · 👤 Conductor
 Status: ✅ done · 🔄 in progress · ⬜ to do · ⛔ dropped
 
 **Key times (MYT):** Feature freeze **Sun 1:30 PM** · Video uploaded **4:00 PM** · Video review done **5:00 PM** (Sarawak rule) · Submit target **7:30 PM** · Local deadline **8:59 PM**
@@ -36,7 +36,7 @@ Status: ✅ done · 🔄 in progress · ⬜ to do · ⛔ dropped
 | 2.8 | `export.js`: render to WAV and download | 🛠 | ✅ |
 | 2.9 | Data & credits drawer, honesty labels, AI statement | 📣🎨 | ✅ |
 | 2.10 | Keyboard shortcuts + ARIA live announcements | 🛠 | ✅ |
-| 2.11 | SHOULD: speed control ✅, explore mode ✅, story captions ✅, instrument picker ⬜ (must respect the family rule) | 🛠 | 🔄 |
+| 2.11 | SHOULD: speed control ✅, explore mode ✅, story captions ✅, instrument picker ✅ (in the Studio, genre-only lists, family rule enforced) | 🛠 | ✅ |
 | 2.17 | Instrument families: no two layers in one song from the same family. New line-up: Orchestra Trumpet / Harp / Bassoon / Cello; Band Saxophone / E-piano / E-bass / Pad. Bassoon, harp, sax samples added; clash check in `audio.js` | 🛠 | ✅ |
 | 2.12 | Headless browser test: both songs play, genre switch mid-play, mute/keyboard, WAV export (16.9 s, real audio) | 🛠 | ✅ |
 | 2.14 | Map view: NASA fire map per step + pulsing hotspot rings + Kuching pin (`map_frames.py`, `maps.js`) | 🛠🎨 | ✅ |
@@ -62,14 +62,14 @@ Status: ✅ done · 🔄 in progress · ⬜ to do · ⛔ dropped
 | 3.2 | Enable GitHub Pages; test public link in a private window. Live: https://danishasri26.github.io/EchoSphere-Hear-Our-Changing-Planet/ (Actions workflow publishes `web/` on every push to main). Full test passed on the live site in a fresh headless Chrome; Conductor to also check on own browser + phone | 👤 | ✅ |
 | 3.3 | Test: 2 songs × 2 genres, mute/solo, WAV export, keyboard-only, NVDA, phone | 🛠👤 | ⬜ |
 | 3.4 | Validity check: Song 1 fire peak Sep, rain silence Aug–Sep; Song 2 sea level rise through 2015 | 🎨 | ⬜ |
-| 3.5 | README: what, how, data sources, method, limits, AI use | 📣🛠 | ⬜ |
+| 3.5 | README: what, how, data sources, method, limits, AI use (written; diatom dates corrected to about ±2 months, rebuild steps added) | 📣🛠 | ✅ |
 | 3.6 | **FEATURE FREEZE 1:30 PM** (moved for the 5 PM video review) | All | ⬜ |
 
 ## Phase 4: Story and submission (1:30–8:59 PM; video live by 4:00 PM)
 | # | Task | Owner | Status |
 |---|---|---|---|
 | 4.1 | Rewrite High-Level Summary for concept v2; resubmit | 📣👤 | ⬜ |
-| 4.2 | 30-s video script with timestamps + English subtitles | 📣 | ⬜ |
+| 4.2 | 30-s video script with timestamps + English subtitles: draft v1 in `docs/video-script.md` | 📣 | ✅ |
 | 4.3 | Record video, upload to YouTube (Unlisted or Public) | 👤 | ⬜ |
 | 4.4 | Fill all project fields (Detailed Description, NASA Data, Other Data, Use of AI) | 📣👤 | ⬜ |
 | 4.5 | Update AI usage log; final checklist; test all links in private window | 📣 | ⬜ |

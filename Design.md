@@ -53,6 +53,7 @@ Design principles:
 ## 3. Screens and layout
 
 ### 3.1 Home: "The Jukebox"
+Updated 15 Nov: the **Studio** card comes first (full width) with *Build* and *Use picture/frame*; then six album cards, each with a data-type badge, layer chips with icons, *Listen* and its own *How to listen*. A legend line explains the badges. Original sketch:
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │  EchoSphere                         How to listen ▸   Data & credits│
@@ -99,8 +100,8 @@ Design principles:
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-### 3.3 "How to listen" (modal, 15 s)
-Plays three reference tones with spoken labels: *"This is low. … This is middle. … This is high. Higher notes mean more: more fire, more rain, more carbon dioxide, higher seas. Silence means no data, or no rain."* Then lists each instrument and its layer for the chosen genre. Skippable; reachable by keyboard shortcut `H`.
+### 3.3 "How to listen" (modal, 15 s), one per album
+Opened from each album card's *How to listen* button, or `H` / the top-bar button in the player. The text is built from **that song's layers**: place and what one note is (a week, a month, a quarter, or a slice of a picture), then one line per layer (instrument, headphone side, what high and low mean), then Mute/Solo keys. The spoken guide plays low, middle and high on the song's first instrument and names this song's instruments and special sounds (rain silence, the fire drum hit). On the home page, `H` shows the general rules.
 
 ### 3.4 "Data & credits" (side drawer)
 Per layer: what it measures, units, NASA source with link, method (e.g. "colours decoded from the legend, calibrated to exact frames"), and limits (clipped at 20+, CO₂ uses NASA's monthly value, air quality not included). Then the AI-usage statement and open-source credits.
@@ -112,6 +113,21 @@ Inspired by NASA's Caldwell 73 sonification (SVS 13786), where the picture stays
 - A **Kuching pin** shows home on both maps. Song 1 shows NASA's colour legend; Song 2's frames already include it.
 - The line graph becomes a slim **timeline strip** under the map.
 
+### 3.7 Studio (added 15 Nov)
+- **Source picker** first (albums · your event · your snapshots), then only that source's layers: pick 1–4, a genre, and an instrument per layer (only the chosen genre's instruments; families must differ).
+- **Start from a real event:** event type + year → NASA EONET list (filter by name) → NASA POWER weather becomes a new source.
+- **My songs** (this browser) and **Copy link** (`#song=` recipe: layers, genre, instruments; never data).
+- Back from a Studio song returns to the Studio.
+
+### 3.8 Picture tool "Use picture/frame" (added 15 Nov)
+- Upload 1–4 pictures; each becomes one layer of the "Your snapshots" source.
+- Step 1 *How should the colours be read?*: the picture's colour legend (then mark it, pink box, and type low/high values and units) or a no-legend rule (blue → green → yellow → red, darker, or lighter = higher; relative 0–100, black/grey/white = none). No legend box is shown until one is marked.
+- **Map area** (cyan box): only that part is read and shown in the player; everything outside is dimmed. *What do the colours show?* gives the pitch note ("redder colour = more rain").
+- In the player the picture (cropped to the area) replaces the map, with a **pink band** on the slice being played; the chart reads West → East. Saved pictures can be **edited** without uploading again.
+
+### 3.9 Data-type labels (added 15 Nov)
+Each layer has `sourceKind`: 🎨 decoded from a NASA visualization · 📄 NASA values behind a visualization · 📈 NASA data, no visualization · 🖼️ decoded from your picture. Shown as an album badge, chip icons, in the Studio list and in the drawer.
+
 ### 3.6 Responsive
 - ≥ 1024 px: layout above.
 - < 1024 px: cover on top, chart below, mixer as a stacked list; genre toggle becomes a full-width segmented control.
@@ -121,7 +137,7 @@ Inspired by NASA's Caldwell 73 sonification (SVS 13786), where the picture stays
 ## 4. Accessibility design
 | Feature | Design |
 |---|---|
-| Keyboard | `Space` play/pause · `R` restart · `G` switch genre · `1`–`3` mute layer · `Shift+1`–`3` solo · `H` how to listen · `←/→` step in explore mode |
+| Keyboard | `Space` play/pause · `R` restart · `G` switch genre · `1`–`4` mute layer · `Shift+1`–`4` solo · `H` how to listen · `←/→` step in explore mode |
 | Screen reader | Real `<button>` elements with labels; an `aria-live="polite"` region announces "Playing Kuching 2015, Orchestra", the month at each new month, and "Paused at October 2015". |
 | Chart | Decorative for screen readers (`aria-hidden`), with a data table alternative in the Data drawer. |
 | Focus | 3px amber focus ring on every control. |
@@ -144,17 +160,25 @@ Inspired by NASA's Caldwell 73 sonification (SVS 13786), where the picture stays
 | Silence | Missing data = rest. Rain below 1 mm/day = rest, so drought is heard as silence. |
 | Clean-up | Smoothed mode merges changes smaller than one legend step: fires 2.5 gC/m²/week (colorbar tick), rain 1 mm/day, CO₂ 1 ppm, sea level 1 mm. Raw mode plays every value. |
 | Clipping | Fire values at 20+ trigger a percussion accent ("off the scale"). |
-| Time | One data step per beat. Song 1: 31 steps; Song 2: 36 steps. About 15–20 s per track at 1× speed. |
+| Time | One data step per beat. Song 1: 31 weekly steps; Song 2: 36 monthly; albums 3–5: 17 weekly; album 6: 60 quarterly; pictures: 32 slices west → east. About 10–36 s per track at 1× speed. |
 
 ### 5.3 Instruments per layer (recorded samples)
 Instruments use **recorded samples** played with Tone.js `Sampler` (it re-pitches a few recorded notes to cover the range). Only the notes we need are copied into `web/audio/`, so the app stays small and works without outside servers.
 
+As built (15 Nov; `GENRES` in `audio.js`). Within one song no two layers share an instrument family.
+
 | Layer | Register | Pan | Orchestra | Modern Band |
 |---|---|---|---|---|
-| 🔥 Wildfires | High (C4–C6) | Right 30% | Trumpet + tambourine/cymbal accent at 20+ | Electric guitar + crash accent at 20+ |
-| 🌧️ Rain | Middle (C3–C5) | Left 30% | Xylophone / marimba (mallets) | Electric piano |
-| 🏭 CO₂ | Low (C2–C3), sustained | Centre | Tuba | Electric bass |
+| 🔥 Wildfires | High (C4–C6) | Right 30% | Trumpet (+ timpani accent at 10+ gC/m²/week) | Saxophone (+ timpani accent) |
+| 🌧️ Rain | Middle (C3–C5) | Left 30% | Harp | Electric piano |
+| 🏭 CO₂ | Low (C2–C3), sustained | Centre | Bassoon | Electric bass |
 | 🌊 Sea level | Low-mid (G2–G4), legato | Left 15% | Cello | Synth pad |
+| 🌡️ Temperature | High | Right 30% | Trumpet | Electric guitar |
+| 💧 Humidity | Low-mid, legato | Left 15% | Bassoon | Synth pad |
+| 🌬️ Wind | Low | Right 15% | Marimba | Saxophone |
+| 🌿 Diatoms | Low-mid, legato | Centre | Cello | Synth pad |
+
+Studio instrument lists per genre: Orchestra = trumpet, tuba, bassoon, harp, cello, marimba; Modern Band = saxophone, electric piano, electric guitar, electric bass, synth pad (four families each).
 
 **Sample sources (all free, credited in the app and README):**
 | Source | Licence | Used for |
@@ -185,7 +209,10 @@ There is **no server**. The "backend" is an offline Python pipeline that turns N
                                                                          ├─ mapping.js   (value → note rules)
                                                                          ├─ chart.js     (SVG timeline)
                                                                          ├─ guide.js     (How to listen, speech)
-                                                                         └─ export.js    (offline render → WAV)
+                                                                         └─ export.js    (record → WAV)
+ NASA EONET + POWER     ──►  build_event_songs.py ──► web/data/event_songs.json (albums 3–5)
+ SVS 12009 video + bar  ──►  diatoms.py           ──► web/data/diatom_song.json (album 6)
+ In the browser: studio.js (Studio, save/share), live.js (EONET + POWER live), snapshot.js (picture tool)
 ```
 
 ### 6.1 Song data format (`web/data/songs.json`)
@@ -213,16 +240,17 @@ There is **no server**. The "backend" is an offline Python pipeline that turns N
 }
 ```
 `build_songs.py` reads the files in `data/` and writes this single file, so the app needs one fetch.
+Added later: `event_songs.js` and `diatom_song.js` push more songs into the same list. Extra fields: `sourceKind` (data-type label), `digits` (decimals to show), `stepUnit` (`week`, `month`, `quarter`, `slice`), song-level `intro` and `limits` (drawer honesty text), and `instrument` on Studio layers.
 
 ### 6.2 Audio engine (`audio.js`)
-- Tone.js (MIT licence, loaded from a CDN) for `Sampler` instruments, filters, panners, reverb and the Transport clock.
+- Tone.js (MIT licence, bundled in `web/vendor/`, no CDN) for `Sampler` instruments, filters, panners, reverb and the Transport clock.
 - On Play: build one instrument chain per layer (`Sampler → Filter → Panner → Volume → Reverb → Destination`), schedule each step with `Tone.Transport.scheduleRepeat`, and fire UI callbacks (playhead, live region, meters) through `Tone.Draw`.
 - Mute/Solo: set each layer's `Volume.mute`.
 - Genre switch: swap samplers and tempo; keep the playback position.
 - Loading: samplers load before Play is enabled; a short "Tuning instruments…" state is shown.
 
 ### 6.3 Export (`export.js`)
-`Tone.Offline` renders the same schedule faster than real time into a buffer, which is encoded as a 16-bit WAV in the browser and downloaded as `echosphere-<song>-<genre>.wav`.
+As built: the track is played once in real time while `Tone.Recorder` records it, then decoded and encoded as a 16-bit WAV in the browser and downloaded as `echosphere-<song>-<genre>.wav` (the first design used `Tone.Offline`).
 
 ### 6.4 Speech (`guide.js`)
 The Web Speech API (`speechSynthesis`) speaks the "How to listen" guide and optional captions. If speech is unavailable, captions are shown on screen and announced via the live region.
@@ -234,12 +262,12 @@ The Web Speech API (`speechSynthesis`) speaks the "How to listen" guide and opti
 echosphere/
 ├── Requirement.md · Design.md · task.md · README.md
 ├── raw/                 original NASA files + SOURCES.md
-├── data/                pipeline outputs (kuching_2015/, planet_2015/)
-├── pipeline/            Python: invert.py, fires_borneo.py, fires_global.py, co2_borneo.py, build_songs.py
-├── web/                 the app (deployed to GitHub Pages)
+├── data/                pipeline outputs (kuching_2015/, planet_2015/, ocean/)
+├── pipeline/            Python: invert.py, fires_borneo.py, fires_global.py, co2_borneo.py, map_frames.py, build_songs.py, build_event_songs.py, diatoms.py
+├── web/                 the app (deployed to GitHub Pages by .github/workflows/pages.yml)
 │   ├── index.html · style.css
-│   ├── js/ app.js · audio.js · mapping.js · chart.js · guide.js · export.js
-│   ├── data/songs.json
+│   ├── js/ app.js · audio.js · mapping.js · chart.js · guide.js · export.js · studio.js · live.js · snapshot.js
+│   ├── data/songs.json · event_songs.json · diatom_song.json (+ .js wrappers) · maps.js
 │   └── assets/ covers
 ├── docs/                ai-usage-log.md, sources
 └── test/                pipeline tests and previews

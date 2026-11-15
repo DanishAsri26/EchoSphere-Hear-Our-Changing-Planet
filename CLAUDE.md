@@ -18,9 +18,10 @@ Prefer small, safe changes. Never break a working feature close to freeze.
   - `js/audio.js` Tone.js samplers, genres, instrument families, mute/solo
   - `js/mapping.js` value → pentatonic note, loudness, rests, smoothing
   - `js/chart.js` timeline, `js/guide.js` how-to-listen, `js/export.js` WAV export
-  - `data/songs.json` (+ `songs.js` wrapper) real values; `data/maps.js` + `maps/` map frames
+  - `js/studio.js` Studio (source picker, layers, instruments, save/share), `js/live.js` NASA EONET + POWER live events, `js/snapshot.js` picture tool
+  - `data/songs.json` (+ `songs.js` wrapper) albums 1–2; `data/event_songs.*` albums 3–5; `data/diatom_song.*` album 6; `data/maps.js` + `maps/` map frames
   - `audio/` recorded samples; credits in `audio/CREDITS.md`
-- `pipeline/` Python scripts that decode NASA images/files into JSON (run offline)
+- `pipeline/` Python scripts that decode NASA images/files into JSON (run offline; on Windows use `python -X utf8`)
 - `raw/` original downloads (large `.exr`/`.mp4` are not committed)
 - Run locally: `run.bat` (local server; opening index.html directly breaks sample loading)
 

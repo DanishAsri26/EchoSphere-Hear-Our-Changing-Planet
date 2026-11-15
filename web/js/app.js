@@ -349,17 +349,20 @@
     $("#guide-title").textContent = s ? `How to listen: ${s.title}` : "How to listen";
     $("#guide-list").innerHTML = guideItems(s).map(t => `<li>${t}</li>`).join("");
     $("#guide-instruments").textContent = s ? `${EchoAudio.GENRES[state.genre].label}: ` + s.layers.map(l => `${l.icon} ${l.name} = ${guideInstrument(s, l)}`).join(" · ") : "";
-    $("#guide-play").textContent = `▶ Play the 15-second guide${s ? "" : ` (${DATA.songs[0].title})`}`;
-    $("#guide").showModal();
+    $("#guide-play").textContent = `▶ Read the guide aloud${s ? "" : ` (${DATA.songs[0].title})`}`;
+    if (!$("#guide").open) $("#guide").showModal();
   }
   async function playGuide() {
-    const target = guideSong || DATA.songs[0];
+    if (!guideSong) openGuide(DATA.songs[0]); // the general guide reads the first album's guide
+    const target = guideSong;
     if (state.song !== target || $("#view-player").hidden) { await openSong(target); }
     if (!state.ready) return;
     if (engine.playing) { engine.pause(); setPlayUI(); }
     await Tone.start();
     $("#guide-play").disabled = true;
-    await EchoGuide.playGuide(engine, state.song, live);
+    // read exactly what the box shows, line by line
+    const items = [...document.querySelectorAll("#guide-list li")].map(li => li.textContent.replace(/\s+/g, " ").trim());
+    await EchoGuide.playGuide(engine, state.song, live, items);
     $("#guide-play").focus();
     $("#guide-play").disabled = false;
   }
@@ -397,7 +400,8 @@
       b.disabled = false; setPlayUI();
     });
     $("#btn-guide").addEventListener("click", () => openGuide());
-    $("#guide-close").addEventListener("click", () => { if ("speechSynthesis" in window) speechSynthesis.cancel(); $("#guide").close(); });
+    $("#guide-close").addEventListener("click", () => $("#guide").close());
+    $("#guide").addEventListener("close", () => EchoGuide.stop()); // Close button or Escape: stop reading
     $("#guide-play").addEventListener("click", playGuide);
     $("#btn-credits").addEventListener("click", () => openDrawer($("#drawer").hidden));
     $("#drawer-close").addEventListener("click", () => openDrawer(false));

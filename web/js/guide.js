@@ -1,35 +1,43 @@
-/* EchoSphere "How to listen" guide: reference tones + spoken labels (Web Speech API).
+/* EchoSphere "How to listen" guide: reference tones + the whole guide read aloud (Web Speech API).
    Code written with AI assistance (Claude, Anthropic). */
 (function () {
   "use strict";
   const wait = ms => new Promise(r => setTimeout(r, ms));
 
+  let stopped = false;
   function say(text, live) {
     if (live) live(text);
     return new Promise(resolve => {
-      if (!("speechSynthesis" in window)) return setTimeout(resolve, 1600);
+      if (!("speechSynthesis" in window)) return setTimeout(resolve, 1600 + text.length * 40);
       const u = new SpeechSynthesisUtterance(text);
       u.lang = "en-US"; u.rate = 1.0;
       u.onend = resolve; u.onerror = resolve;
       speechSynthesis.cancel(); speechSynthesis.speak(u);
-      setTimeout(resolve, 6000); // safety
+      setTimeout(resolve, 3000 + text.length * 90); // safety, long enough for long sentences
     });
   }
 
-  /** Plays low / middle / high on the song's first instrument, then explains this song's layers. ~15 s. */
-  async function playGuide(engine, song, live) {
-    const g = EchoAudio.GENRES[engine.genre];
+  /**
+   * Reads the whole How to listen box aloud. items = the box's lines as plain text:
+   * [album line, one line per layer..., keys line]. Before each layer line, that layer's instrument plays a note.
+   */
+  async function playGuide(engine, song, live, items) {
+    stopped = false;
     const first = song.layers[0].id;
     await say("This is low.", live);   engine.preview(first, "C3", "2n"); await wait(1100);
+    if (stopped) return;
     await say("This is middle.", live); engine.preview(first, "C4", "2n"); await wait(1100);
+    if (stopped) return;
     await say("This is high.", live);   engine.preview(first, "C5", "2n"); await wait(1100);
-    const unit = { week: "one week", month: "one month", quarter: "three months", slice: "one slice of the picture, from west to east" }[song.stepUnit] || "one step";
-    await say(`Higher notes mean more. In ${song.title}, each note is ${unit}.`, live);
-    // per layer: its instrument, plus the special sounds this song uses
-    const parts = song.layers.map(l => `${l.name}: ${engine.instrumentFor(l.id)}` +
-      (l.restBelow !== undefined ? ", silence means almost none" : "") + (l.intensity ? ", a drum hit means very intense" : "")).join(". ");
-    await say(`In ${g.label}, ${parts}.`, live);
+    const lines = items && items.length ? items : [`Higher notes mean more. ${song.title}.`];
+    for (let k = 0; k < lines.length; k++) {
+      if (stopped) return;
+      const layer = song.layers[k - 1]; // lines 1..n describe the layers in order
+      if (layer && k <= song.layers.length) { engine.preview(layer.id, "C4", "4n"); await wait(700); }
+      await say(lines[k], live);
+    }
   }
+  function stop() { stopped = true; if ("speechSynthesis" in window) speechSynthesis.cancel(); }
 
-  window.EchoGuide = { playGuide, say };
+  window.EchoGuide = { playGuide, say, stop };
 })();

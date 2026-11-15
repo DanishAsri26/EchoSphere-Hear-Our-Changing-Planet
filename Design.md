@@ -101,7 +101,7 @@ Updated 15 Nov: the **Studio** card comes first (full width) with *Build* and *U
 ```
 
 ### 3.3 "How to listen" (modal, 15 s), one per album
-Opened from each album card's *How to listen* button, or `H` / the top-bar button in the player. The text is built from **that song's layers**: place and what one note is (a week, a month, a quarter, or a slice of a picture), then one line per layer (instrument, headphone side, what high and low mean), then Mute/Solo keys. The spoken guide plays low, middle and high on the song's first instrument and names this song's instruments and special sounds (rain silence, the fire drum hit). On the home page, `H` shows the general rules.
+Opened from each album card's *How to listen* button, or `H` / the top-bar button in the player. The text is built from **that song's layers**: place and what one note is (a week, a month, a quarter, or a slice of a picture), then one line per layer (instrument, headphone side, what high and low mean), then Mute/Solo keys. *Read the guide aloud* plays low, middle and high on the song's first instrument, then reads **every line of the box**, playing each layer's instrument just before its line. Closing the box (Close or Escape) stops the reading. On the home page, `H` shows the general rules.
 
 ### 3.4 "Data & credits" (side drawer)
 Per layer: what it measures, units, NASA source with link, method (e.g. "colours decoded from the legend, calibrated to exact frames"), and limits (clipped at 20+, CO₂ uses NASA's monthly value, air quality not included). Then the AI-usage statement and open-source credits.

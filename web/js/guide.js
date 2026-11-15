@@ -19,7 +19,7 @@
 
   /**
    * Reads the whole How to listen box aloud. items = the box's lines as plain text:
-   * [album line, one line per layer..., keys line]. Before each layer line, that layer's instrument plays a note.
+   * [album line, one line per layer..., keys line]. In each layer line, after the instrument's name is said, that instrument plays one note.
    */
   async function playGuide(engine, song, live, items) {
     stopped = false;
@@ -32,9 +32,15 @@
     const lines = items && items.length ? items : [`Higher notes mean more. ${song.title}.`];
     for (let k = 0; k < lines.length; k++) {
       if (stopped) return;
-      const layer = song.layers[k - 1]; // lines 1..n describe the layers in order
-      if (layer && k <= song.layers.length) { engine.preview(layer.id, "C4", "4n"); await wait(700); }
-      await say(lines[k], live);
+      const layer = k >= 1 && k <= song.layers.length ? song.layers[k - 1] : null; // lines 1..n describe the layers
+      if (!layer) { await say(lines[k], live); continue; }
+      // say "Wildfires: Trumpet", play one note on that instrument, then read the rest of the line
+      const head = `${layer.name}: ${engine.instrumentFor(layer.id)}`, at = lines[k].indexOf(head);
+      const rest = at >= 0 ? lines[k].slice(at + head.length).replace(/^[\s,.;:]+/, "") : lines[k];
+      await say(at >= 0 ? head : lines[k], live);
+      if (stopped) return;
+      engine.preview(layer.id, "C4", "2n"); await wait(1100);
+      if (rest && at >= 0) await say(rest, live);
     }
   }
   function stop() { stopped = true; if ("speechSynthesis" in window) speechSynthesis.cancel(); }

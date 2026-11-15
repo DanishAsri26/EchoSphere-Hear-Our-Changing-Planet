@@ -71,7 +71,7 @@
     view.innerHTML = `
       <div class="player-top"><button class="link-btn" id="studio-back" type="button">◂ Back to the jukebox</button></div>
       <h1 id="studio-title" tabindex="-1">Studio</h1>
-      <p class="lede">Make your own song from real NASA data. Use our album layers, start from a real event, or <a href="#snap-box" id="studio-jump-snap">use your own picture</a>. Then choose a source, pick 1 to ${MAX} of its layers, a genre, and an instrument for each layer.</p>
+      <p class="lede">Make your own song from real NASA data. Use our album layers, start from a real event, or use your own picture. Then choose a source, pick 1 to ${MAX} of its layers, a genre, and an instrument for each layer.</p>
       <section id="my-songs" class="studio-mine" hidden aria-labelledby="my-songs-title">
         <h2 id="my-songs-title">My songs</h2>
         <p class="hint">Saved in this browser only. Use Copy link to keep a song on another device or share it.</p>
@@ -121,7 +121,6 @@
       </form>`;
 
     $("#studio-back").addEventListener("click", APP.goHome);
-    $("#studio-jump-snap").addEventListener("click", ev => { ev.preventDefault(); showPictures(); });
     view.querySelectorAll('input[name="studio-genre"]').forEach(r => r.addEventListener("change", () => setGenre(r.value)));
     $("#studio-form").addEventListener("submit", ev => { ev.preventDefault(); openInPlayer(); });
     $("#live-find").addEventListener("click", findEvents);

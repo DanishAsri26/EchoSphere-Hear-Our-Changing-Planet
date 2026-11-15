@@ -41,9 +41,17 @@
   const MAPS = window.ECHO_MAPS || {};
   const KUCHING = { lat: 1.55, lon: 110.35 };
   const map = { front: "a", cache: [] };
+  /** Map frames for a song: NASA frames for the albums; the uploaded picture for a snapshot song. */
+  function mapFor(song) {
+    if (!song) return null;
+    if (!song.snapshot) return MAPS[song.id];
+    const pic = song.layers[0] && song.layers[0].picture;
+    if (!pic) return null;
+    return song._map || (song._map = { aspect: pic.aspect, snapshot: true, frames: [{ img: pic.url, hotspots: [] }] });
+  }
 
   function fitMap() {
-    const song = state.song, m = song && MAPS[song.id], box = $("#map");
+    const song = state.song, m = mapFor(song), box = $("#map");
     if (!m || $("#view-player").hidden) return;
     const col = $("#readout");
     if (window.innerWidth <= 1000) { box.style.width = "100%"; box.style.height = (col.clientWidth / m.aspect) + "px"; return; }
@@ -55,13 +63,14 @@
   window.addEventListener("resize", () => fitMap());
 
   function setupMap(song) {
-    const m = MAPS[song.id], box = $("#map");
+    const m = mapFor(song), box = $("#map");
     box.hidden = !m;
     if (!m) return;
     requestAnimationFrame(fitMap);
     map.cache = m.frames.map(f => { const im = new Image(); im.src = f.img; return im; }); // preload
     $("#map-a").src = m.frames[0].img; $("#map-a").classList.add("show"); $("#map-b").classList.remove("show"); map.front = "a";
     $("#map-legend").hidden = song.id !== "kuching-2015"; // the global frames already show NASA's own legend
+    $(".map-credit").textContent = m.snapshot ? `Your picture: ${song.layers[0].name} · pink band = slice being played` : "NASA SVS 5012 · fire carbon emissions";
     drawOverlay(song, 0, false);
   }
 
@@ -71,7 +80,14 @@
   }
 
   function drawOverlay(song, i, pulse) {
-    const m = MAPS[song.id]; if (!m) return;
+    const m = mapFor(song); if (!m) return;
+    if (m.snapshot) { // highlight the slice of the picture that is playing now
+      const n = song.steps.length, name = song.layers[0].name;
+      $("#map-overlay").innerHTML = `<span class="slice-band" style="left:${(i / n * 100).toFixed(3)}%;width:${(100 / n).toFixed(3)}%"></span>` +
+        `<span class="map-badge">${fmtDate(song, song.steps[i])}</span>`;
+      $("#map").setAttribute("aria-label", `Your picture ${name}, read from west to east. Now playing ${fmtDate(song, song.steps[i])}.`);
+      return;
+    }
     const f = m.frames[i] || m.frames[0];
     const fireOn = !effectiveMuted().has("fire");
     const k = pinPos(m, KUCHING);
@@ -82,11 +98,12 @@
   }
 
   function showFrame(song, i, pulse) {
-    const m = MAPS[song.id]; if (!m || !m.frames[i]) return;
+    const m = mapFor(song); if (!m) return;
+    const fr = m.frames[i] || m.frames[0];
     const back = map.front === "a" ? "b" : "a";
     const imgBack = $("#map-" + back), imgFront = $("#map-" + map.front);
-    if (imgFront.getAttribute("src") !== m.frames[i].img) {
-      imgBack.src = m.frames[i].img;
+    if (imgFront.getAttribute("src") !== fr.img) {
+      imgBack.src = fr.img;
       imgBack.classList.add("show"); imgFront.classList.remove("show"); map.front = back;
     }
     drawOverlay(song, i, pulse);

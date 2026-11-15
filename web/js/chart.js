@@ -27,10 +27,12 @@
       let lastLabel = null;
       song.steps.forEach((d, i) => {
         const m = parseInt(d.slice(5, 7), 10) - 1;
-        const label = song.stepUnit === "month" ? (m === 0 ? d.slice(0, 4) : (m % 3 === 0 ? MONTHS[m] : null)) : MONTHS[m];
+        const label = song.stepUnit === "slice" ? (i === 0 ? "West" : i === n - 1 ? "East" : (i % 8 === 0 ? `slice ${i + 1}` : null)) // a picture: space, not time
+          : song.stepUnit === "month" ? (m === 0 ? d.slice(0, 4) : (m % 3 === 0 ? MONTHS[m] : null)) : MONTHS[m];
         if (label && label !== lastLabel) {
           svg.appendChild(el("line", { x1: x(i), x2: x(i), y1: PAD.t, y2: H - PAD.b, stroke: "rgba(255,255,255,.07)" }));
-          const t = el("text", { x: x(i) + 3, y: H - 6, fill: "#A9B0D0", "font-size": 12, "font-family": "Inter, sans-serif" });
+          const last = song.stepUnit === "slice" && i === n - 1;
+          const t = el("text", { x: last ? x(i) - 3 : x(i) + 3, y: H - 6, fill: "#A9B0D0", "font-size": 12, "font-family": "Inter, sans-serif", "text-anchor": last ? "end" : "start" });
           t.textContent = label; svg.appendChild(t);
           lastLabel = label;
         }

@@ -101,7 +101,7 @@
       layers: sn.layers.map((l, i) => ({
         id: `snap${i + 1}`, name: l.name, icon: "🖼️", color: COLORS[i], units: l.units || "legend units",
         values: l.values, legendStep: Math.abs(l.high - l.low) / 20, register: REGISTERS[i], pan: PANS[i],
-        defaults: DEFAULTS[i], sourceKind: "upload",
+        defaults: DEFAULTS[i], sourceKind: "upload", picture: l.picture,
         describe: `Decoded from your picture "${l.file}". Higher notes mean higher values on its legend (${l.low} to ${l.high} ${l.units}).`,
         source: { name: `Your picture: ${l.file}`, url: "#" },
         method: `Legend marked at ${l.box.x}% / ${l.box.y}% (size ${l.box.w}% × ${l.box.h}%), read ${l.reverse ? "high → low" : "low → high"} as ${l.low} to ${l.high} ${l.units}. ${Math.round(l.matched * 100)}% of map pixels matched a legend colour.`,
@@ -148,6 +148,7 @@
     $("#snap-list").addEventListener("click", e => {
       const b = e.target.closest("button[data-i]"); if (!b) return;
       const [gone] = sn.layers.splice(+b.dataset.i, 1); publish();
+      if (gone.picture) URL.revokeObjectURL(gone.picture.url);
       status(`Removed ${gone.name}. ${sn.layers.length} of ${MAX_PICS} pictures.`);
       $("#snap-file").focus();
     });
@@ -172,7 +173,9 @@
       $("#snap-x").focus();
     };
     img.onerror = () => status("This picture could not be opened. Try a PNG or JPG.");
-    img.src = URL.createObjectURL(f);
+    if (sn.url) URL.revokeObjectURL(sn.url);
+    sn.url = URL.createObjectURL(f); // kept while the picture is used, so the player can show it
+    img.src = sn.url;
     e.target.value = "";
   }
 
@@ -213,7 +216,9 @@
     if (n < 2 || matched < 0.005) { status(`Only ${Math.round(matched * 100)}% of the picture matches the legend colours, too little to make music. Check that the box covers only the colour bar.`); $("#snap-x").focus(); return; }
     const name = ($("#snap-name").value.trim() || `Picture ${sn.layers.length + 1}`).replace(/[<>"&]/g, "").slice(0, 40);
     const units = $("#snap-units").value.trim().replace(/[<>"&]/g, "").slice(0, 20);
-    sn.layers.push({ name, units, low, high, reverse, box, values, matched, file: sn.file });
+    sn.layers.push({ name, units, low, high, reverse, box, values, matched, file: sn.file,
+      picture: { url: sn.url, aspect: sn.img.naturalWidth / sn.img.naturalHeight } });
+    sn.url = null; // now owned by the layer
     closeEditor();
     publish();
     const vs = values.filter(v => v !== null);
@@ -222,7 +227,7 @@
     const first = document.querySelector('.studio-opt[data-key^="snapshot:"] input'); if (first) first.focus();
   }
 
-  function closeEditor() { $("#snap-edit").hidden = true; sn.img = null; }
+  function closeEditor() { $("#snap-edit").hidden = true; sn.img = null; if (sn.url) { URL.revokeObjectURL(sn.url); sn.url = null; } }
 
   function renderList() {
     $("#snap-list").innerHTML = sn.layers.map((l, i) => `<li><span>🖼️ <b>${esc(l.name)}</b> <small class="muted">${esc(l.file)} · ${l.low} to ${l.high} ${esc(l.units)} · ${Math.round(l.matched * 100)}% matched</small></span>

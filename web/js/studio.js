@@ -467,7 +467,7 @@
         <div class="chips">${[...new Set(CATALOG.map(e => `${e.layer.icon} ${e.layer.name}`))].map(c => `<span class="chip">${c}</span>`).join("")}<span class="chip">🌍 Any event</span><span class="chip">🖼️ Your pictures</span></div>
         <div class="studio-row">
           <button type="button" class="play small" id="btn-studio" aria-label="Open the Studio"><span aria-hidden="true">▶</span> Build</button>
-          <button type="button" class="ghost" id="btn-studio-pic">🖼️ Use a picture</button>
+          <button type="button" class="ghost" id="btn-studio-pic">🖼️ Use picture/frame</button>
         </div>
       </div>`;
     $("#albums").prepend(card); // first, so everyone finds it

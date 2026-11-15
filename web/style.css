@@ -192,6 +192,8 @@ body.in-player .topbar { padding-top: 10px; padding-bottom: 6px; }
 .kind-badge.kind-visual { background: rgba(255,181,71,.16); color: #FFD08A !important; border: 1px solid rgba(255,181,71,.5); }
 .kind-badge.kind-other { background: rgba(79,195,247,.10); color: #A8DDF7 !important; border: 1px solid rgba(79,195,247,.35); }
 .chip .kind { margin-left: 2px; }
+/* the top-bar guide is only for the song playing; albums have their own guide buttons */
+body:not(.in-player) #btn-guide { display: none; }
 .card-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .card-actions .ghost { padding: 8px 12px; font-size: 14px; }
 .guide-list kbd { font-size: 12px; }

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EchoSphere: Hear Our Changing Planet</title>
+  <meta name="description" content="EchoSphere turns NASA Earth data into music. Hear the 2015 El Niño: fires over Borneo, rain in Kuching, carbon dioxide and sea level.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23FFB547'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%230B1020'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="sky" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#" id="brand" aria-label="EchoSphere home">
+      <span class="brand-dot" aria-hidden="true"></span>EchoSphere
+    </a>
+    <nav class="topnav" aria-label="Main">
+      <button class="link-btn" id="btn-guide" type="button">How to listen <kbd>H</kbd></button>
+      <button class="link-btn" id="btn-credits" type="button" aria-controls="drawer" aria-expanded="false">Data &amp; credits</button>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- HOME: the jukebox -->
+    <section id="view-home" class="view" aria-labelledby="home-title">
+      <div class="hero">
+        <p class="eyebrow">NASA Earth data, played as music</p>
+        <h1 id="home-title">Hear Our Changing Planet</h1>
+        <p class="lede">In 2015 a giant El Niño dried out Southeast Asia. Borneo burned, haze reached Kuching, and the whole planet felt it.
+          Pick an album and listen: every note comes from real NASA measurements.</p>
+      </div>
+      <div class="albums" id="albums" role="list"></div>
+      <p class="tagline">“What burns locally echoes globally.”</p>
+    </section>
+
+    <!-- STUDIO: build your own song (filled by js/studio.js) -->
+    <section id="view-studio" class="view" hidden aria-labelledby="studio-title"></section>
+
+    <!-- PLAYER -->
+    <section id="view-player" class="view" hidden aria-labelledby="song-title">
+      <div class="player-top">
+        <button class="link-btn" id="btn-back" type="button">◂ Back to the jukebox</button>
+        <div class="genre" role="radiogroup" aria-label="Genre">
+          <button type="button" role="radio" class="seg" data-genre="orchestra" aria-checked="true">🎻 Orchestra</button>
+          <button type="button" role="radio" class="seg" data-genre="band" aria-checked="false">🎸 Modern Band</button>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="side">
+          <div class="disc-row">
+            <div class="disc" id="disc">
+              <div class="disc-fallback" id="disc-fallback" aria-hidden="true"></div>
+              <img id="cover" alt="" src="">
+              <span class="disc-hole" aria-hidden="true"></span>
+            </div>
+            <div>
+              <h2 id="song-title" class="song-title"></h2>
+              <p id="song-meta" class="song-meta"></p>
+            </div>
+          </div>
+
+          <section class="mixer" aria-labelledby="mixer-title">
+            <h3 id="mixer-title">Mixer</h3>
+            <div id="strips"></div>
+            <p class="hint">Mute <kbd>1</kbd>–<kbd>3</kbd> · Solo <kbd>Shift</kbd>+number · Explore <kbd>←</kbd><kbd>→</kbd> when paused</p>
+          </section>
+
+          <div class="save-row">
+            <button type="button" class="ghost" id="btn-save">⬇ Save as WAV</button>
+            <span id="save-status" class="muted" aria-live="polite"></span>
+          </div>
+          <p class="note">Notes, loudness and brightness come from the data. Key, tempo, reverb and the Modern Band drum groove are musical choices only.</p>
+        </div>
+
+        <div class="readout" id="readout">
+          <div class="readout-head">
+            <p class="date" id="date" aria-hidden="true">—</p>
+            <p class="caption" id="caption" aria-hidden="true">Press play to start.</p>
+          </div>
+          <div class="map" id="map" role="img" aria-label="NASA fire map">
+            <img class="map-img show" id="map-a" alt="">
+            <img class="map-img" id="map-b" alt="">
+            <div class="map-overlay" id="map-overlay" aria-hidden="true"></div>
+            <img class="map-legend" id="map-legend" src="assets/fire-legend.png" alt="" hidden>
+            <span class="map-credit" aria-hidden="true">NASA SVS 5012 · fire carbon emissions</span>
+          </div>
+          <div class="chart" id="chart" aria-hidden="true"></div>
+          <div class="transport">
+            <button type="button" class="round" id="btn-restart" aria-label="Restart (R)">⟲</button>
+            <button type="button" class="play" id="btn-play" aria-label="Play (Space)" disabled>
+              <span class="play-icon" aria-hidden="true">▶</span><span class="play-text">Loading…</span>
+            </button>
+            <button type="button" class="round" id="btn-stop" aria-label="Stop">■</button>
+            <label class="ctl">Speed
+              <select id="speed">
+                <option value="0.5">0.5×</option><option value="0.75">0.75×</option>
+                <option value="1" selected>1×</option><option value="1.5">1.5×</option>
+              </select>
+            </label>
+            <div class="toggle" role="group" aria-label="Data mode">
+              <button type="button" class="seg small" id="mode-smooth" aria-pressed="true" title="Changes smaller than one legend step are merged">Smoothed</button>
+              <button type="button" class="seg small" id="mode-raw" aria-pressed="false">Raw</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- How to listen -->
+  <dialog id="guide" aria-labelledby="guide-title">
+    <h2 id="guide-title">How to listen</h2>
+    <ol class="guide-list" id="guide-list">
+      <li><b>Low, middle, high.</b> Higher notes mean <i>more</i>: more fire, more rain, more carbon dioxide, higher seas.</li>
+      <li><b>Silence</b> in the rain line means almost no rain: drought.</li>
+      <li><b>Each topic has its own instrument</b> and its own place in your headphones. Use Mute and Solo to hear one at a time.</li>
+      <li>A <b>drum hit</b> on the fire line marks very intense burning.</li>
+    </ol>
+    <p id="guide-instruments" class="muted"></p>
+    <div class="dialog-actions">
+      <button type="button" class="play small" id="guide-play">▶ Play the 15-second guide</button>
+      <button type="button" class="ghost" id="guide-close">Close</button>
+    </div>
+  </dialog>
+
+  <!-- Data & credits drawer -->
+  <aside id="drawer" class="drawer" hidden aria-labelledby="drawer-title">
+    <div class="drawer-head">
+      <h2 id="drawer-title">Data &amp; credits</h2>
+      <button type="button" class="ghost" id="drawer-close">Close</button>
+    </div>
+    <div id="drawer-body"></div>
+  </aside>
+
+  <div id="live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="vendor/Tone.js"></script>
+  <script src="data/songs.js"></script>
+  <script src="data/maps.js"></script>
+  <script src="js/mapping.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/guide.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/live.js"></script>
+  <script src="js/studio.js"></script>
+</body>
+</html>

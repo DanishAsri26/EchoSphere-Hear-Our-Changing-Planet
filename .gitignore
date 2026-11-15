@@ -1,0 +1,12 @@
+# Large raw frames (download again from SVS)
+*.exr
+*.tif
+*.mp4
+__pycache__/
+
+# Old prototype (before concept v2); the app is in web/
+/index.html
+/app.js
+/style.css
+/data/eic-frame.jpg
+/data/sst-anomaly-*

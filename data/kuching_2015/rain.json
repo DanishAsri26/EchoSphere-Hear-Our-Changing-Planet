@@ -1,0 +1,194 @@
+{
+  "source": "NASA POWER daily point API (PRECTOTCORR, T2M, RH2M), community AG",
+  "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=PRECTOTCORR,T2M,RH2M&community=AG&latitude=1.55&longitude=110.35&start=20150601&end=20151231&format=JSON",
+  "place": "Kuching, Sarawak (lat 1.55, lon 110.35)",
+  "resolution": "weekly means of daily values",
+  "weeks": [
+    {
+      "week_start": "2015-06-01",
+      "rain_mm_per_day": 10.35,
+      "temp_c": 27.5,
+      "humidity_pct": 83.8
+    },
+    {
+      "week_start": "2015-06-08",
+      "rain_mm_per_day": 15.68,
+      "temp_c": 26.69,
+      "humidity_pct": 86.8
+    },
+    {
+      "week_start": "2015-06-15",
+      "rain_mm_per_day": 4.39,
+      "temp_c": 27.17,
+      "humidity_pct": 82.9
+    },
+    {
+      "week_start": "2015-06-22",
+      "rain_mm_per_day": 6.03,
+      "temp_c": 27.9,
+      "humidity_pct": 81.5
+    },
+    {
+      "week_start": "2015-06-29",
+      "rain_mm_per_day": 0.18,
+      "temp_c": 27.05,
+      "humidity_pct": 84.1
+    },
+    {
+      "week_start": "2015-07-06",
+      "rain_mm_per_day": 1.87,
+      "temp_c": 27.26,
+      "humidity_pct": 84.2
+    },
+    {
+      "week_start": "2015-07-13",
+      "rain_mm_per_day": 1.56,
+      "temp_c": 27.99,
+      "humidity_pct": 83.5
+    },
+    {
+      "week_start": "2015-07-20",
+      "rain_mm_per_day": 12.8,
+      "temp_c": 26.91,
+      "humidity_pct": 85.4
+    },
+    {
+      "week_start": "2015-07-27",
+      "rain_mm_per_day": 10.97,
+      "temp_c": 26.56,
+      "humidity_pct": 84.1
+    },
+    {
+      "week_start": "2015-08-03",
+      "rain_mm_per_day": 1.56,
+      "temp_c": 26.96,
+      "humidity_pct": 82.2
+    },
+    {
+      "week_start": "2015-08-10",
+      "rain_mm_per_day": 4.6,
+      "temp_c": 27.44,
+      "humidity_pct": 83.5
+    },
+    {
+      "week_start": "2015-08-17",
+      "rain_mm_per_day": 4.62,
+      "temp_c": 26.98,
+      "humidity_pct": 83.0
+    },
+    {
+      "week_start": "2015-08-24",
+      "rain_mm_per_day": 9.23,
+      "temp_c": 27.09,
+      "humidity_pct": 84.6
+    },
+    {
+      "week_start": "2015-08-31",
+      "rain_mm_per_day": 7.42,
+      "temp_c": 27.11,
+      "humidity_pct": 84.2
+    },
+    {
+      "week_start": "2015-09-07",
+      "rain_mm_per_day": 0.45,
+      "temp_c": 27.23,
+      "humidity_pct": 81.8
+    },
+    {
+      "week_start": "2015-09-14",
+      "rain_mm_per_day": 1.89,
+      "temp_c": 27.11,
+      "humidity_pct": 85.8
+    },
+    {
+      "week_start": "2015-09-21",
+      "rain_mm_per_day": 2.79,
+      "temp_c": 27.17,
+      "humidity_pct": 85.5
+    },
+    {
+      "week_start": "2015-09-28",
+      "rain_mm_per_day": 6.31,
+      "temp_c": 27.24,
+      "humidity_pct": 84.9
+    },
+    {
+      "week_start": "2015-10-05",
+      "rain_mm_per_day": 6.64,
+      "temp_c": 27.26,
+      "humidity_pct": 85.0
+    },
+    {
+      "week_start": "2015-10-12",
+      "rain_mm_per_day": 6.19,
+      "temp_c": 27.65,
+      "humidity_pct": 81.7
+    },
+    {
+      "week_start": "2015-10-19",
+      "rain_mm_per_day": 2.6,
+      "temp_c": 27.66,
+      "humidity_pct": 83.1
+    },
+    {
+      "week_start": "2015-10-26",
+      "rain_mm_per_day": 12.2,
+      "temp_c": 26.15,
+      "humidity_pct": 89.8
+    },
+    {
+      "week_start": "2015-11-02",
+      "rain_mm_per_day": 13.59,
+      "temp_c": 26.61,
+      "humidity_pct": 86.2
+    },
+    {
+      "week_start": "2015-11-09",
+      "rain_mm_per_day": 20.75,
+      "temp_c": 27.28,
+      "humidity_pct": 83.2
+    },
+    {
+      "week_start": "2015-11-16",
+      "rain_mm_per_day": 10.97,
+      "temp_c": 26.79,
+      "humidity_pct": 86.2
+    },
+    {
+      "week_start": "2015-11-23",
+      "rain_mm_per_day": 25.99,
+      "temp_c": 26.66,
+      "humidity_pct": 89.3
+    },
+    {
+      "week_start": "2015-11-30",
+      "rain_mm_per_day": 11.89,
+      "temp_c": 26.94,
+      "humidity_pct": 87.0
+    },
+    {
+      "week_start": "2015-12-07",
+      "rain_mm_per_day": 9.31,
+      "temp_c": 27.29,
+      "humidity_pct": 86.3
+    },
+    {
+      "week_start": "2015-12-14",
+      "rain_mm_per_day": 22.16,
+      "temp_c": 25.94,
+      "humidity_pct": 89.4
+    },
+    {
+      "week_start": "2015-12-21",
+      "rain_mm_per_day": 2.5,
+      "temp_c": 27.05,
+      "humidity_pct": 85.6
+    },
+    {
+      "week_start": "2015-12-28",
+      "rain_mm_per_day": 38.95,
+      "temp_c": 26.4,
+      "humidity_pct": 91.4
+    }
+  ]
+}

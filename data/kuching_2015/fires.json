@@ -1,0 +1,44 @@
+{
+  "source": "NASA SVS 5012, Weekly carbon emissions from fires (frames, EXR)",
+  "url": "https://svs.gsfc.nasa.gov/5012",
+  "units": "grams of carbon per square metre per week",
+  "region": {
+    "lat": [
+      -5.0,
+      8.0
+    ],
+    "lon": [
+      105.0,
+      120.0
+    ],
+    "name": "Borneo window centred on Sarawak"
+  },
+  "notes": [
+    "Dates are estimated from frame numbers (frames assumed evenly spread Jan 2003 - Jan 2022).",
+    "Values of 20 or more share the legend's top colour (clipped).",
+    "Values below 0.5 are drawn semi-transparent and are treated as no fire."
+  ],
+  "frames": [
+    {
+      "frame": 2682,
+      "date_estimated": "2015-08-14",
+      "burning_area_pct": 17.83,
+      "mean_emission_gC_m2_week": 8.91,
+      "clipped_20plus_pct_of_burning": 25.2
+    },
+    {
+      "frame": 2694,
+      "date_estimated": "2015-09-16",
+      "burning_area_pct": 11.99,
+      "mean_emission_gC_m2_week": 9.68,
+      "clipped_20plus_pct_of_burning": 25.5
+    },
+    {
+      "frame": 2704,
+      "date_estimated": "2015-10-14",
+      "burning_area_pct": 7.16,
+      "mean_emission_gC_m2_week": 3.56,
+      "clipped_20plus_pct_of_burning": 4.3
+    }
+  ]
+}

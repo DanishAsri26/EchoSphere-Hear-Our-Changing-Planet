@@ -1,0 +1,29 @@
+{
+  "source": "NASA SVS 5024, AIRS Global CO2 (2002-Oct 2022), monthly frames + CO2_frames_dates_values.csv",
+  "url": "https://svs.gsfc.nasa.gov/5024",
+  "units": "ppm",
+  "region": "Borneo window lat -5..8, lon 105..120",
+  "months": [
+    {
+      "frame": "global_co2_airs_720x480.0157.png",
+      "month": "2015-08",
+      "global_ppm_nasa_csv": 401.0,
+      "borneo_ppm_decoded": 390.5,
+      "valid_pct": 74.5
+    },
+    {
+      "frame": "global_co2_airs_720x480.0158.png",
+      "month": "2015-09",
+      "global_ppm_nasa_csv": 401.0,
+      "borneo_ppm_decoded": 390.0,
+      "valid_pct": 74.0
+    },
+    {
+      "frame": "global_co2_airs_720x480.0159.png",
+      "month": "2015-10",
+      "global_ppm_nasa_csv": 401.0,
+      "borneo_ppm_decoded": 390.3,
+      "valid_pct": 74.6
+    }
+  ]
+}

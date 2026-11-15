@@ -1,0 +1,233 @@
+{
+  "source": "NASA SVS 5012 'Weekly carbon emissions from fires' video with date overlay, calibrated to EXR frames",
+  "url": "https://svs.gsfc.nasa.gov/5012",
+  "units": "grams of carbon per square metre per week",
+  "region": "global, 90N-60S, legend corner masked",
+  "method": "One mid-month frame per month; month positions fitted to the printed month labels (~22.17 video frames per month).",
+  "calibration": {
+    "area_factor": 1.346,
+    "emission_factor": 0.926,
+    "area_spread": [
+      1.256,
+      1.43
+    ]
+  },
+  "months": [
+    {
+      "month": "2014-01",
+      "video_frame": 2932,
+      "burning_area_pct": 1.043,
+      "mean_emission_gC_m2_week": 3.46
+    },
+    {
+      "month": "2014-02",
+      "video_frame": 2954,
+      "burning_area_pct": 1.184,
+      "mean_emission_gC_m2_week": 2.35
+    },
+    {
+      "month": "2014-03",
+      "video_frame": 2976,
+      "burning_area_pct": 1.213,
+      "mean_emission_gC_m2_week": 2.16
+    },
+    {
+      "month": "2014-04",
+      "video_frame": 2998,
+      "burning_area_pct": 1.189,
+      "mean_emission_gC_m2_week": 2.31
+    },
+    {
+      "month": "2014-05",
+      "video_frame": 3020,
+      "burning_area_pct": 0.886,
+      "mean_emission_gC_m2_week": 1.99
+    },
+    {
+      "month": "2014-06",
+      "video_frame": 3042,
+      "burning_area_pct": 1.001,
+      "mean_emission_gC_m2_week": 3.67
+    },
+    {
+      "month": "2014-07",
+      "video_frame": 3065,
+      "burning_area_pct": 1.552,
+      "mean_emission_gC_m2_week": 4.2
+    },
+    {
+      "month": "2014-08",
+      "video_frame": 3087,
+      "burning_area_pct": 1.855,
+      "mean_emission_gC_m2_week": 3.21
+    },
+    {
+      "month": "2014-09",
+      "video_frame": 3109,
+      "burning_area_pct": 1.93,
+      "mean_emission_gC_m2_week": 3.27
+    },
+    {
+      "month": "2014-10",
+      "video_frame": 3131,
+      "burning_area_pct": 1.706,
+      "mean_emission_gC_m2_week": 2.23
+    },
+    {
+      "month": "2014-11",
+      "video_frame": 3153,
+      "burning_area_pct": 0.912,
+      "mean_emission_gC_m2_week": 2.03
+    },
+    {
+      "month": "2014-12",
+      "video_frame": 3175,
+      "burning_area_pct": 0.842,
+      "mean_emission_gC_m2_week": 3.64
+    },
+    {
+      "month": "2015-01",
+      "video_frame": 3198,
+      "burning_area_pct": 1.045,
+      "mean_emission_gC_m2_week": 3.3
+    },
+    {
+      "month": "2015-02",
+      "video_frame": 3220,
+      "burning_area_pct": 0.976,
+      "mean_emission_gC_m2_week": 1.65
+    },
+    {
+      "month": "2015-03",
+      "video_frame": 3242,
+      "burning_area_pct": 1.175,
+      "mean_emission_gC_m2_week": 2.22
+    },
+    {
+      "month": "2015-04",
+      "video_frame": 3264,
+      "burning_area_pct": 0.902,
+      "mean_emission_gC_m2_week": 2.06
+    },
+    {
+      "month": "2015-05",
+      "video_frame": 3286,
+      "burning_area_pct": 0.941,
+      "mean_emission_gC_m2_week": 2.16
+    },
+    {
+      "month": "2015-06",
+      "video_frame": 3308,
+      "burning_area_pct": 1.064,
+      "mean_emission_gC_m2_week": 3.45
+    },
+    {
+      "month": "2015-07",
+      "video_frame": 3331,
+      "burning_area_pct": 1.614,
+      "mean_emission_gC_m2_week": 3.68
+    },
+    {
+      "month": "2015-08",
+      "video_frame": 3353,
+      "burning_area_pct": 1.855,
+      "mean_emission_gC_m2_week": 3.93
+    },
+    {
+      "month": "2015-09",
+      "video_frame": 3375,
+      "burning_area_pct": 2.043,
+      "mean_emission_gC_m2_week": 3.35
+    },
+    {
+      "month": "2015-10",
+      "video_frame": 3397,
+      "burning_area_pct": 1.481,
+      "mean_emission_gC_m2_week": 2.26
+    },
+    {
+      "month": "2015-11",
+      "video_frame": 3419,
+      "burning_area_pct": 1.091,
+      "mean_emission_gC_m2_week": 2.27
+    },
+    {
+      "month": "2015-12",
+      "video_frame": 3442,
+      "burning_area_pct": 0.935,
+      "mean_emission_gC_m2_week": 4.01
+    },
+    {
+      "month": "2016-01",
+      "video_frame": 3464,
+      "burning_area_pct": 1.08,
+      "mean_emission_gC_m2_week": 3.97
+    },
+    {
+      "month": "2016-02",
+      "video_frame": 3486,
+      "burning_area_pct": 1.068,
+      "mean_emission_gC_m2_week": 2.16
+    },
+    {
+      "month": "2016-03",
+      "video_frame": 3508,
+      "burning_area_pct": 0.904,
+      "mean_emission_gC_m2_week": 2.37
+    },
+    {
+      "month": "2016-04",
+      "video_frame": 3530,
+      "burning_area_pct": 1.045,
+      "mean_emission_gC_m2_week": 1.84
+    },
+    {
+      "month": "2016-05",
+      "video_frame": 3552,
+      "burning_area_pct": 0.956,
+      "mean_emission_gC_m2_week": 2.94
+    },
+    {
+      "month": "2016-06",
+      "video_frame": 3575,
+      "burning_area_pct": 1.06,
+      "mean_emission_gC_m2_week": 3.36
+    },
+    {
+      "month": "2016-07",
+      "video_frame": 3597,
+      "burning_area_pct": 1.582,
+      "mean_emission_gC_m2_week": 3.77
+    },
+    {
+      "month": "2016-08",
+      "video_frame": 3619,
+      "burning_area_pct": 1.854,
+      "mean_emission_gC_m2_week": 3.36
+    },
+    {
+      "month": "2016-09",
+      "video_frame": 3641,
+      "burning_area_pct": 1.74,
+      "mean_emission_gC_m2_week": 3.36
+    },
+    {
+      "month": "2016-10",
+      "video_frame": 3663,
+      "burning_area_pct": 1.21,
+      "mean_emission_gC_m2_week": 2.3
+    },
+    {
+      "month": "2016-11",
+      "video_frame": 3685,
+      "burning_area_pct": 0.885,
+      "mean_emission_gC_m2_week": 2.61
+    },
+    {
+      "month": "2016-12",
+      "video_frame": 3708,
+      "burning_area_pct": 0.846,
+      "mean_emission_gC_m2_week": 4.17
+    }
+  ]
+}

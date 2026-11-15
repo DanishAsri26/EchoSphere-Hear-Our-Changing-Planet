@@ -355,7 +355,7 @@
       else if (e.key.toLowerCase() === "g") { const next = state.genre === "orchestra" ? "band" : "orchestra"; loadGenre(next).then(() => live(`Genre: ${EchoAudio.GENRES[next].label}.`)); }
       else if (e.key === "ArrowRight") { e.preventDefault(); explore(1); }
       else if (e.key === "ArrowLeft") { e.preventDefault(); explore(-1); }
-      else if (/^Digit[1-3]$/.test(e.code)) {
+      else if (/^Digit[1-4]$/.test(e.code)) {
         const l = state.song.layers[parseInt(e.code.slice(5), 10) - 1];
         if (l) e.shiftKey ? toggleSolo(l.id) : toggleMute(l.id);
       }

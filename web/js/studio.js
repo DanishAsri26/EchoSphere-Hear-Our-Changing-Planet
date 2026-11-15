@@ -1,6 +1,6 @@
 /* EchoSphere Studio (task 2.16, cut-down; live events 2.18): build your own song from the layers in
    songs.json, or from a real NASA event (EONET + POWER, see live.js).
-   Pick 2–3 layers that share the same time steps, a genre and an instrument per layer
+   Choose a source, pick 1–4 of its layers, a genre and an instrument per layer
    (no two layers from the same instrument family), then play and save it in the normal player.
    Code written with AI assistance (Claude, Anthropic). */
 (function () {
@@ -10,7 +10,7 @@
   const APP = window.EchoApp;
   const LIVE = window.EchoLive;
   const live = APP.live;
-  const MIN = 2, MAX = 3;
+  const MIN = 1, MAX = 4;
   const ACCENTS = new Set(Object.values(GENRES).map(g => g.accent)); // timpani is kept for the fire accent
 
   // Every layer of every song, tagged with its song's timeline. Live event layers are added later.
@@ -21,7 +21,10 @@
   window.ECHO_SONGS.songs.forEach(addToCatalog);
   const byKey = k => CATALOG.find(e => e.key === k);
 
-  const st = { selected: [], genre: "orchestra", instr: {}, events: [], busy: false };
+  const st = { selected: [], genre: "orchestra", instr: {}, events: [], busy: false, source: window.ECHO_SONGS.songs[0].id };
+  const plural = n => `${n} layer${n === 1 ? "" : "s"}`;
+  /** Sources = songs whose layers can be mixed (one timeline each): albums, a loaded event, a snapshot. */
+  const sources = () => [...new Map(CATALOG.map(e => [e.song.id, e.song])).values()];
   const chosen = () => CATALOG.filter(e => st.selected.includes(e.key));
   const famOf = k => SAMPLES[k].family;
   const instrumentKeys = Object.keys(SAMPLES).filter(k => !ACCENTS.has(k));
@@ -67,7 +70,7 @@
     view.innerHTML = `
       <div class="player-top"><button class="link-btn" id="studio-back" type="button">◂ Back to the jukebox</button></div>
       <h1 id="studio-title" tabindex="-1">Studio</h1>
-      <p class="lede">Make your own song from real NASA data. Use our album layers, or start from a real event. Then pick ${MIN} or ${MAX} layers, a genre, and an instrument for each layer.</p>
+      <p class="lede">Make your own song from real NASA data. Use our album layers, or start from a real event. Then choose a source, pick 1 to ${MAX} of its layers, a genre, and an instrument for each layer.</p>
       <section id="my-songs" class="studio-mine" hidden aria-labelledby="my-songs-title">
         <h2 id="my-songs-title">My songs</h2>
         <p class="hint">Saved in this browser only. Use Copy link to keep a song on another device or share it.</p>
@@ -92,9 +95,9 @@
           <p id="live-status" class="muted"></p>
         </fieldset>
         <fieldset>
-          <legend>1. Pick ${MIN} or ${MAX} data layers</legend>
-          <p class="hint">Layers must share the same time steps, so only matching layers can be mixed.</p>
-          <div class="studio-opts" id="studio-opts"></div>
+          <legend>1. Choose a source, then pick 1 to ${MAX} layers</legend>
+          <label class="ctl studio-source">Source <select id="studio-source"></select></label>
+          <div class="studio-opts" id="studio-opts" role="group" aria-label="Layers of the chosen source"></div>
         </fieldset>
         <fieldset>
           <legend>2. Genre</legend>
@@ -124,6 +127,7 @@
     $("#live-filter").addEventListener("keydown", ev => { if (ev.key === "Enter") { ev.preventDefault(); $("#live-list").focus(); } });
     $("#live-list").addEventListener("keydown", ev => { if (ev.key === "Enter") { ev.preventDefault(); useEvent(); } });
     $("#my-songs-list").addEventListener("click", onMine);
+    $("#studio-source").addEventListener("change", ev => setSource(ev.target.value, true));
     $("#studio-link").addEventListener("click", () => {
       const n = st.selected.length;
       if (n < MIN || n > MAX) { live($("#studio-status").textContent); return; }
@@ -135,11 +139,12 @@
 
   function renderOpts() {
     const host = $("#studio-opts");
-    host.innerHTML = CATALOG.map((e, i) => `
+    renderSources();
+    host.innerHTML = CATALOG.map((e, i) => e.song.id !== st.source ? "" : `
       <label class="studio-opt${e.song.live ? " live" : ""}" data-key="${e.key}">
         <input type="checkbox" value="${e.key}" aria-describedby="studio-why-${i}">
-        <span><span style="color:${e.layer.color}" aria-hidden="true">●</span> ${e.layer.icon} <b>${e.layer.name}</b>, from “${e.song.title}”
-          <small class="muted">${e.layer.units} · ${e.song.period} · <span aria-hidden="true">${APP.kindOf(e.layer).icon}</span> ${APP.kindOf(e.layer).short}</small>
+        <span><span style="color:${e.layer.color}" aria-hidden="true">●</span> ${e.layer.icon} <b>${esc(e.layer.name)}</b>
+          <small class="muted">${esc(e.layer.units)} · <span aria-hidden="true">${APP.kindOf(e.layer).icon}</span> ${APP.kindOf(e.layer).short}</small>
           <small class="studio-why" id="studio-why-${i}"></small></span>
       </label>`).join("");
     host.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -156,6 +161,7 @@
     // layer checkboxes: blocked ones stay focusable (aria-disabled) so screen-reader users hear the reason
     CATALOG.forEach((e, i) => {
       const why = blockReason(e), box = document.querySelector(`.studio-opt[data-key="${e.key}"]`);
+      if (!box) return; // layer of another source
       const cb = box.querySelector("input");
       cb.checked = st.selected.includes(e.key);
       cb.setAttribute("aria-disabled", why ? "true" : "false");
@@ -167,8 +173,8 @@
     $("#studio-open").setAttribute("aria-disabled", ok ? "false" : "true");
     $("#studio-link").setAttribute("aria-disabled", ok ? "false" : "true");
     $("#studio-status").textContent = ok
-      ? `${n} layers ready: ${chosen().map(e => `${e.layer.name} on ${SAMPLES[st.instr[e.key]].label}`).join(", ")}.`
-      : `Pick ${n === 0 ? `${MIN} or ${MAX} layers` : "at least one more layer"} to open your song.`;
+      ? `${plural(n)} ready: ${chosen().map(e => `${e.layer.name} on ${SAMPLES[st.instr[e.key]].label}`).join(", ")}.`
+      : `Pick 1 to ${MAX} layers to open your song.`;
   }
 
   function renderInstruments() {
@@ -225,7 +231,7 @@
       const hadPicks = st.selected.length > 0;
       addEventSong(song);
       setLiveStatus(`Added ${song.layers.length} layers for ${ev.title}: ${song.layers.map(l => l.name).join(", ")}. ` +
-        `${hadPicks ? "Your earlier picks were cleared. " : ""}Now pick ${MIN} or ${MAX} of them in step 1.`);
+        `${hadPicks ? "Your earlier picks were cleared. " : ""}It is now the chosen source in step 1: pick 1 to ${MAX} of its layers.`);
       const firstNew = document.querySelector(".studio-opt.live input"); if (firstNew) firstNew.focus();
     } catch (err) { setLiveStatus(err.message); }
     st.busy = false; $("#live-box").removeAttribute("aria-busy");
@@ -236,7 +242,25 @@
     for (let i = CATALOG.length - 1; i >= 0; i--) if (CATALOG[i].song.live) CATALOG.splice(i, 1);
     st.selected = []; st.instr = {};
     addToCatalog(song);
+    st.source = song.id;
     renderOpts();
+  }
+
+  function renderSources() {
+    const groups = [["Albums", s => !s.live && !s.snapshot], ["Your event (live)", s => s.live], ["Your snapshots", s => s.snapshot]];
+    $("#studio-source").innerHTML = groups.map(([label, test]) => {
+      const list = sources().filter(test);
+      return list.length ? `<optgroup label="${label}">${list.map(s => `<option value="${s.id}"${s.id === st.source ? " selected" : ""}>${esc(s.title)} · ${esc(s.period)} (${plural(s.layers.length)})</option>`).join("")}</optgroup>` : "";
+    }).join("");
+  }
+
+  /** Switch source: only its layers are shown; picks from another source are cleared. */
+  function setSource(id, announce) {
+    const song = sources().find(s => s.id === id); if (!song) return;
+    const hadPicks = st.selected.length > 0;
+    st.source = id; st.selected = []; st.instr = {};
+    renderOpts();
+    if (announce) live(`Source: ${song.title}, ${song.period}. ${plural(song.layers.length)}: ${song.layers.map(l => l.name).join(", ")}.${hadPicks ? " Your earlier picks were cleared." : ""}`);
   }
 
   /* ---------- Save & share (task 2.21) ----------
@@ -267,7 +291,7 @@
     const entries = keys.map(byKey);
     if (entries.some(e => !e) || entries.length < MIN || entries.length > MAX || new Set(entries.map(e => e.timeline)).size !== 1)
       throw new Error("This song link does not match the data in this version of EchoSphere.");
-    st.genre = r.g; st.selected = keys; st.instr = {};
+    st.genre = r.g; st.source = entries[0].song.id; renderOpts(); st.selected = keys; st.instr = {};
     r.l.forEach(([k, inst]) => { if (SAMPLES[inst] && !ACCENTS.has(inst)) st.instr[k] = inst; });
     resolveInstruments(false); // re-checks the family rule
     document.querySelectorAll('input[name="studio-genre"]').forEach(x => { x.checked = x.value === st.genre; });
@@ -331,9 +355,8 @@
     const changes = resolveInstruments(false);
     refresh();
     const e = byKey(key), n = st.selected.length;
-    let msg = `${e.layer.name} ${on ? `added, played by ${SAMPLES[st.instr[key]].label}` : "removed"}. ${n} of ${MAX} layers.`;
+    let msg = `${e.layer.name} ${on ? `added, played by ${SAMPLES[st.instr[key]].label}` : "removed"}. ${n} of up to ${MAX} layers.`;
     if (changes.length) msg += ` ${changes.join(". ")}, to keep instrument families different.`;
-    if (n === 1) msg += " Layers with different time steps are now unavailable.";
     live(msg);
   }
 
@@ -386,7 +409,7 @@
     document.body.classList.remove("in-player");
     window.scrollTo({ top: 0 });
     $("#studio-title").focus();
-    live(`Studio. Pick ${MIN} or ${MAX} data layers, a genre and an instrument for each layer, or start from a real NASA event.`);
+    live(`Studio. Choose a source and pick 1 to ${MAX} of its layers, a genre and an instrument for each layer. You can also start from a real NASA event.`);
   }
 
   /* ---------- Jukebox card ---------- */

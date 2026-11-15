@@ -221,6 +221,8 @@ body.in-player .topbar { padding-top: 10px; padding-bottom: 6px; }
 .studio-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .studio-live-results { display: grid; gap: 6px; margin-top: 12px; }
 .studio-live-results[hidden] { display: none; }
+.studio-source { display: flex; margin: 4px 0 12px; }
+.studio-source select { flex: 1; min-width: 0; }
 .studio select, .studio input[type="search"] { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; color: var(--text); font: inherit; max-width: 100%; }
 #live-list option { padding: 4px 6px; }
 #live-list option:checked { background: var(--amber); color: #1a1205; }

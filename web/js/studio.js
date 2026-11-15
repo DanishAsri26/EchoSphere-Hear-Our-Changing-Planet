@@ -196,6 +196,9 @@
   /* ---------- Live events (NASA EONET + POWER) ---------- */
   const setLiveStatus = (msg, announce) => { $("#live-status").textContent = msg; if (announce !== false) live(msg); };
 
+  // EONET has records for these types only in a few years (checked 15 Nov 2026); other types cover all years
+  const RECORD_YEARS = { dustHaze: "2015–2017", drought: "2015–2016", tempExtremes: "2015–2017", floods: "2015–2017 and 2025" };
+
   async function findEvents() {
     if (st.busy) return;
     const cat = $("#live-cat").value, year = $("#live-year").value, label = LIVE.CATEGORIES[cat].toLowerCase();
@@ -208,8 +211,9 @@
       renderEventList();
       $("#live-results").hidden = !st.events.length;
       setLiveStatus(st.events.length
-        ? `Found ${st.events.length} ${label} in ${year}. Choose one from the Events list, then press Use this event.`
-        : `No ${label} found in ${year}. Try another year or event type.`);
+        ? `NASA's EONET list has ${st.events.length} record${st.events.length === 1 ? "" : "s"} of ${label} for ${year}. Choose one from the Events list, then press Use this event.`
+        : `NASA's EONET list has no records of ${label} for ${year}. This does not mean none happened: EONET only lists some events.` +
+          (RECORD_YEARS[cat] ? ` For ${label}, it has records mainly for ${RECORD_YEARS[cat]}.` : "") + " Try another year or event type.");
       if (st.events.length) $("#live-list").focus();
     } catch (err) { setLiveStatus(err.message); }
     st.busy = false; $("#live-box").removeAttribute("aria-busy");

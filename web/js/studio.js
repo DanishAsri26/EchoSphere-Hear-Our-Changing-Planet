@@ -68,6 +68,11 @@
       <div class="player-top"><button class="link-btn" id="studio-back" type="button">◂ Back to the jukebox</button></div>
       <h1 id="studio-title" tabindex="-1">Studio</h1>
       <p class="lede">Make your own song from real NASA data. Use our album layers, or start from a real event. Then pick ${MIN} or ${MAX} layers, a genre, and an instrument for each layer.</p>
+      <section id="my-songs" class="studio-mine" hidden aria-labelledby="my-songs-title">
+        <h2 id="my-songs-title">My songs</h2>
+        <p class="hint">Saved in this browser only. Use Copy link to keep a song on another device or share it.</p>
+        <ul id="my-songs-list"></ul>
+      </section>
       <form id="studio-form" class="studio" novalidate>
         <fieldset id="live-box">
           <legend>Start from a real event (optional, needs internet)</legend>
@@ -105,6 +110,7 @@
         </fieldset>
         <div class="studio-actions">
           <button type="submit" class="play" id="studio-open" aria-describedby="studio-status"><span aria-hidden="true">▶</span> Open in player</button>
+          <button type="button" class="ghost" id="studio-link" aria-describedby="studio-status">Copy link</button>
           <span id="studio-status" class="muted"></span>
         </div>
       </form>`;
@@ -117,7 +123,14 @@
     $("#live-filter").addEventListener("input", renderEventList);
     $("#live-filter").addEventListener("keydown", ev => { if (ev.key === "Enter") { ev.preventDefault(); $("#live-list").focus(); } });
     $("#live-list").addEventListener("keydown", ev => { if (ev.key === "Enter") { ev.preventDefault(); useEvent(); } });
+    $("#my-songs-list").addEventListener("click", onMine);
+    $("#studio-link").addEventListener("click", () => {
+      const n = st.selected.length;
+      if (n < MIN || n > MAX) { live($("#studio-status").textContent); return; }
+      copyLink(recipe(), $("#studio-status"));
+    });
     renderOpts();
+    renderMine();
   }
 
   function renderOpts() {
@@ -152,6 +165,7 @@
     renderInstruments();
     const n = st.selected.length, ok = n >= MIN && n <= MAX;
     $("#studio-open").setAttribute("aria-disabled", ok ? "false" : "true");
+    $("#studio-link").setAttribute("aria-disabled", ok ? "false" : "true");
     $("#studio-status").textContent = ok
       ? `${n} layers ready: ${chosen().map(e => `${e.layer.name} on ${SAMPLES[st.instr[e.key]].label}`).join(", ")}.`
       : `Pick ${n === 0 ? `${MIN} or ${MAX} layers` : "at least one more layer"} to open your song.`;
@@ -208,17 +222,106 @@
     setLiveStatus(`Fetching NASA POWER weather for ${ev.title} (${ev.lat}°, ${ev.lon}°)…`);
     try {
       const song = await LIVE.eventSong(ev);
-      // one live event at a time: drop the previous one
-      for (let i = CATALOG.length - 1; i >= 0; i--) if (CATALOG[i].song.live) CATALOG.splice(i, 1);
       const hadPicks = st.selected.length > 0;
-      st.selected = []; st.instr = {};
-      addToCatalog(song);
-      renderOpts();
+      addEventSong(song);
       setLiveStatus(`Added ${song.layers.length} layers for ${ev.title}: ${song.layers.map(l => l.name).join(", ")}. ` +
         `${hadPicks ? "Your earlier picks were cleared. " : ""}Now pick ${MIN} or ${MAX} of them in step 1.`);
       const firstNew = document.querySelector(".studio-opt.live input"); if (firstNew) firstNew.focus();
     } catch (err) { setLiveStatus(err.message); }
     st.busy = false; $("#live-box").removeAttribute("aria-busy");
+  }
+
+  /** Put one event's layers in the catalog (one live event at a time) and clear the picks. */
+  function addEventSong(song) {
+    for (let i = CATALOG.length - 1; i >= 0; i--) if (CATALOG[i].song.live) CATALOG.splice(i, 1);
+    st.selected = []; st.instr = {};
+    addToCatalog(song);
+    renderOpts();
+  }
+
+  /* ---------- Save & share (task 2.21) ----------
+     A song is saved as a small recipe (layer keys, genre, instruments), never as data or sound:
+     opening it rebuilds the music from the NASA data (live-event songs re-fetch it). */
+  const enc = o => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const dec = s => JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g, "+").replace(/_/g, "/")))));
+  const recipe = () => ({ v: 1, g: st.genre, l: chosen().map(e => [e.key, st.instr[e.key]]) });
+  const songLink = r => `${location.origin}${location.pathname}#song=${enc(r)}`;
+  const STORE = "echosphere.mySongs.v1";
+  const loadMine = () => { try { const x = JSON.parse(localStorage.getItem(STORE)); return Array.isArray(x) ? x : []; } catch (e) { return []; } };
+  const saveMine = list => { try { localStorage.setItem(STORE, JSON.stringify(list.slice(0, 10))); return true; } catch (e) { return false; } };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  async function applyRecipe(r) {
+    if (!r || r.v !== 1 || !Array.isArray(r.l) || !GENRES[r.g]) throw new Error("This song link is broken.");
+    const keys = r.l.map(x => String(x[0]));
+    const liveKey = keys.find(k => k.startsWith("live-"));
+    if (liveKey) {
+      const id = liveKey.slice(5).split(":")[0];
+      if (!CATALOG.some(e => e.song.id === `live-${id}`)) {
+        setLiveStatus("Loading this song's event from NASA EONET and POWER…");
+        const song = await LIVE.eventSong(await LIVE.getEvent(id));
+        addEventSong(song);
+        setLiveStatus(`Loaded ${song.title} from NASA.`, false);
+      }
+    }
+    const entries = keys.map(byKey);
+    if (entries.some(e => !e) || entries.length < MIN || entries.length > MAX || new Set(entries.map(e => e.timeline)).size !== 1)
+      throw new Error("This song link does not match the data in this version of EchoSphere.");
+    st.genre = r.g; st.selected = keys; st.instr = {};
+    r.l.forEach(([k, inst]) => { if (SAMPLES[inst] && !ACCENTS.has(inst)) st.instr[k] = inst; });
+    resolveInstruments(false); // re-checks the family rule
+    document.querySelectorAll('input[name="studio-genre"]').forEach(x => { x.checked = x.value === st.genre; });
+    refresh();
+  }
+
+  function rememberSong() {
+    const r = recipe(), id = enc(r), list = chosen();
+    const name = `${list.map(e => e.layer.name).join(" + ")} · ${list[0].song.title}`;
+    const mine = loadMine().filter(x => x.id !== id);
+    mine.unshift({ id, name, genre: GENRES[st.genre].label, saved: new Date().toISOString().slice(0, 10), r });
+    saveMine(mine); renderMine();
+  }
+
+  function renderMine() {
+    const mine = loadMine();
+    $("#my-songs").hidden = !mine.length;
+    $("#my-songs-list").innerHTML = mine.map((x, i) => `
+      <li><span>${esc(x.name)} <small class="muted">${esc(x.genre)} · saved ${esc(x.saved)}</small></span>
+        <span class="my-actions">
+          <button type="button" class="ghost" data-act="open" data-i="${i}" aria-label="Open ${esc(x.name)}">Open</button>
+          <button type="button" class="ghost" data-act="link" data-i="${i}" aria-label="Copy link to ${esc(x.name)}">Copy link</button>
+          <button type="button" class="ghost" data-act="del" data-i="${i}" aria-label="Delete ${esc(x.name)}">Delete</button>
+        </span></li>`).join("");
+  }
+
+  async function onMine(ev) {
+    const b = ev.target.closest("button[data-act]"); if (!b) return;
+    const mine = loadMine(), x = mine[+b.dataset.i]; if (!x) return;
+    if (b.dataset.act === "open") {
+      try { await applyRecipe(x.r); openInPlayer(); } catch (err) { live(err.message); $("#studio-status").textContent = err.message; }
+    } else if (b.dataset.act === "link") {
+      copyLink(x.r, $("#studio-status"));
+    } else {
+      mine.splice(+b.dataset.i, 1); saveMine(mine); renderMine();
+      live(`Deleted ${x.name}. ${mine.length} saved songs left.`);
+      $(mine.length ? "#my-songs-list button" : "#studio-title").focus();
+    }
+  }
+
+  async function copyLink(r, statusEl) {
+    const url = songLink(r);
+    let ok = false;
+    try { await navigator.clipboard.writeText(url); ok = true; } catch (e) { /* no clipboard permission */ }
+    statusEl.textContent = ok ? "Link copied. Anyone who opens it hears this song." : `Copy this link: ${url}`;
+    live(ok ? "Link copied. Anyone who opens it hears this song." : "Could not copy automatically. The link is shown on screen.");
+  }
+
+  async function openFromHash() {
+    const m = location.hash.match(/^#song=([A-Za-z0-9_-]+)$/);
+    if (!m) return;
+    showStudio();
+    try { await applyRecipe(dec(m[1])); openInPlayer(); }
+    catch (err) { const msg = err.message.startsWith("This") || err.message.startsWith("Could") ? err.message : "This song link is broken."; $("#studio-status").textContent = msg; live(msg); }
   }
 
   /* ---------- Actions ---------- */
@@ -272,6 +375,9 @@
     const n = st.selected.length;
     if (n < MIN || n > MAX) { live($("#studio-status").textContent); return; }
     APP.state.genre = st.genre;
+    rememberSong();
+    const r = recipe();
+    try { history.replaceState(null, "", `#song=${enc(r)}`); } catch (e) { /* address bar not updatable */ }
     APP.openSong(makeSong());
   }
 
@@ -304,5 +410,9 @@
 
   build();
   addCard();
-  window.EchoStudio = { showStudio, makeSong, state: st, catalog: CATALOG };
+  // player "Copy link" button (shown for Studio songs only)
+  $("#btn-share").addEventListener("click", () => copyLink(recipe(), $("#save-status")));
+  window.addEventListener("hashchange", openFromHash);
+  window.EchoStudio = { showStudio, makeSong, state: st, catalog: CATALOG, recipe, songLink };
+  openFromHash();
 })();

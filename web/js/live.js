@@ -55,7 +55,17 @@
   async function findEvents(category, year) {
     const url = `${EONET}?status=all&category=${category}&start=${year}-01-01&end=${year}-12-31`;
     const data = await getJson(url, "NASA EONET");
-    return data.events.map(e => {
+    return data.events.map(parseEvent).sort((a, b) => b.date.localeCompare(a.date));
+  }
+
+  /** One event by its EONET id (used to reopen a shared or saved song). */
+  async function getEvent(id) {
+    if (!/^EONET_\d+$/.test(id)) throw new Error("This song link has an unknown event id.");
+    return parseEvent(await getJson(`${EONET}/${id}`, "NASA EONET"));
+  }
+
+  function parseEvent(e) {
+    {
       const geo = e.geometry.slice().sort((a, b) => a.date.localeCompare(b.date));
       const start = geo[0];
       // place: strongest reported point if magnitudes exist, else the first report; areas use their centre
@@ -70,13 +80,16 @@
         lon = lons.reduce((s, x) => s + x, 0) / lons.length; if (lon > 180) lon -= 360;
         lat = ring.reduce((s, p) => s + p[1], 0) / ring.length;
       }
+      // these fields end up in the page's HTML: keep only safe text and http(s) links
+      if (!/^EONET_\d+$/.test(e.id)) throw new Error("NASA EONET returned an unexpected event id.");
       return {
-        id: e.id, title: e.title, date: start.date.slice(0, 10), closed: e.closed ? e.closed.slice(0, 10) : null,
-        lat: +lat.toFixed(2), lon: +lon.toFixed(2), link: e.link, sources: e.sources || [],
+        id: e.id, title: String(e.title).replace(/[<>"&]/g, ""), date: start.date.slice(0, 10), closed: e.closed ? e.closed.slice(0, 10) : null,
+        lat: +lat.toFixed(2), lon: +lon.toFixed(2), link: `${EONET}/${e.id}`,
+        sources: (e.sources || []).filter(s => /^[\w.-]+$/.test(s.id) && /^https?:\/\/[^\s"'<>]+$/.test(s.url)),
         where: withMag.length ? `where it was strongest (${pick.magnitudeValue} ${pick.magnitudeUnit || ""}`.trim() + `, ${pick.date.slice(0, 10)})`
              : pick.type === "Point" ? "where it was first reported" : "centre of the reported area",
       };
-    }).sort((a, b) => b.date.localeCompare(a.date));
+    }
   }
 
   /** Build a song-shaped object (same fields as songs.json) for one event. */
@@ -145,5 +158,5 @@
     };
   }
 
-  window.EchoLive = { CATEGORIES, findEvents, eventSong };
+  window.EchoLive = { CATEGORIES, findEvents, getEvent, eventSong };
 })();

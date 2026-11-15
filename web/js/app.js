@@ -115,6 +115,8 @@
   async function openSong(i) {
     const song = typeof i === "object" ? i : DATA.songs[i]; // a song object comes from the Studio
     $("#view-studio").hidden = true;
+    $("#btn-share").hidden = !song.studio; $("#save-status").textContent = "";
+    $("#btn-back").textContent = song.studio ? "◂ Back to the Studio" : "◂ Back to the jukebox";
     state.song = song; state.idx = 0; state.muted.clear(); state.solo = null; state.lastMonth = null;
     $("#view-home").hidden = true; $("#view-player").hidden = false; document.body.classList.add("in-player");
     $("#song-title").textContent = song.title;
@@ -307,7 +309,11 @@
   /* ---------- Wire up ---------- */
   function bind() {
     $("#brand").addEventListener("click", e => { e.preventDefault(); goHome(); });
-    $("#btn-back").addEventListener("click", goHome);
+    $("#btn-back").addEventListener("click", () => {
+      const fromStudio = state.song && state.song.studio;
+      goHome();
+      if (fromStudio && window.EchoStudio) EchoStudio.showStudio();
+    });
     $("#btn-play").addEventListener("click", togglePlay);
     $("#btn-restart").addEventListener("click", restart);
     $("#btn-stop").addEventListener("click", stop);
@@ -359,6 +365,7 @@
   function goHome() {
     engine.stop(); setPlayUI();
     $("#view-player").hidden = true; $("#view-studio").hidden = true; $("#view-home").hidden = false; document.body.classList.remove("in-player");
+    if (location.hash) try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* ignore */ }
     live("Back to the jukebox.");
   }
 

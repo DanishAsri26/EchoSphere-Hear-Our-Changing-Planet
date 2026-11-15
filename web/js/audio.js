@@ -26,11 +26,15 @@
   // Each song uses 3 of these layers; every pair has a different family in both genres.
   // Orchestra: Song 1 brass / strings (harp) / woodwind, Song 2 brass / woodwind / strings (cello) (+ timpani accent, the only percussion).
   // Modern Band: woodwind / keyboard / guitar / synth (+ drum bed).
+  // Weather layers (event albums, live Studio): rain + temp + humidity = strings/brass/woodwind and
+  // keyboard/guitar/synth; temp + humidity + wind = brass/woodwind/percussion and guitar/synth/woodwind.
   const GENRES = {
     orchestra: { label: "Orchestra", bpm: 100, reverb: 3.2, wet: 0.35, bed: false,
-                 layers: { fire: "trumpet", rain: "harp", co2: "bassoon", sea: "cello" }, accent: "timpani" },
+                 layers: { fire: "trumpet", rain: "harp", co2: "bassoon", sea: "cello",
+                           temp: "trumpet", humidity: "bassoon", wind: "marimba" }, accent: "timpani" },
     band:      { label: "Modern Band", bpm: 120, reverb: 1.4, wet: 0.18, bed: true,
-                 layers: { fire: "saxophone", rain: "electric_piano_1", co2: "bass-electric", sea: "pad_2_warm" }, accent: "timpani" },
+                 layers: { fire: "saxophone", rain: "electric_piano_1", co2: "bass-electric", sea: "pad_2_warm",
+                           temp: "guitar-electric", humidity: "pad_2_warm", wind: "saxophone" }, accent: "timpani" },
   };
 
   /** Instrument key for a layer: a Studio layer may carry its own `instrument`, otherwise the genre's choice. */

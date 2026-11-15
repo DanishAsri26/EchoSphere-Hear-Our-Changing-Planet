@@ -1,0 +1,31 @@
+{
+ "id": "EONET_4542",
+ "title": "Wildfires - New South Wales, Australia",
+ "description": null,
+ "link": "https://eonet.gsfc.nasa.gov/api/v3/events/EONET_4542",
+ "closed": "2020-01-16T00:00:00Z",
+ "categories": [
+  {
+   "id": "wildfires",
+   "title": "Wildfires"
+  }
+ ],
+ "sources": [
+  {
+   "id": "PDC",
+   "url": "http://emops.pdc.org/emops/?hazard_id=99658"
+  }
+ ],
+ "geometry": [
+  {
+   "magnitudeValue": null,
+   "magnitudeUnit": null,
+   "date": "2019-12-20T17:00:00Z",
+   "type": "Point",
+   "coordinates": [
+    152.127127635,
+    -29.316364295
+   ]
+  }
+ ]
+}

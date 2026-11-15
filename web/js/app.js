@@ -249,7 +249,7 @@
       <p><b>Units:</b> ${l.units}. <b>Source:</b> <a href="${l.source.url}" target="_blank" rel="noopener">${l.source.name}</a>.<br><b>Method:</b> ${l.method}</p>`).join("");
     const rows = s.steps.map((d, i) => `<tr><td>${fmtDate(s, d)}</td>${s.layers.map(l => `<td>${fmtNum(l.values[i])}</td>`).join("")}</tr>`).join("");
     $("#drawer-body").innerHTML = `
-      <p>Every note comes from NASA data. ${s.live ? "This song was fetched live from NASA's EONET and POWER services." : "Map colours were turned back into numbers using each map's colour legend, and checked against exact frames."}</p>
+      <p>Every note comes from NASA data. ${s.intro ? s.intro : s.live ? "This song was fetched live from NASA's EONET and POWER services." : "Map colours were turned back into numbers using each map's colour legend, and checked against exact frames."}</p>
       <h3>Now showing: ${s.title}</h3>${layers}
       <details><summary>Data table (${s.steps.length} steps)</summary>
         <table><thead><tr><th>Date</th>${s.layers.map(l => `<th>${l.name}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></details>

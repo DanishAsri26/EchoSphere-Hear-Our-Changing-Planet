@@ -63,7 +63,13 @@
       const pick = withMag.length ? withMag.reduce((a, b) => (b.magnitudeValue > a.magnitudeValue ? b : a)) : start;
       let lon, lat;
       if (pick.type === "Point") [lon, lat] = pick.coordinates;
-      else { const ring = pick.coordinates[0]; lon = ring.reduce((s, p) => s + p[0], 0) / ring.length; lat = ring.reduce((s, p) => s + p[1], 0) / ring.length; }
+      else {
+        const ring = pick.coordinates[0];
+        let lons = ring.map(p => p[0]);
+        if (Math.max(...lons) - Math.min(...lons) > 180) lons = lons.map(x => (x < 0 ? x + 360 : x)); // crosses the date line
+        lon = lons.reduce((s, x) => s + x, 0) / lons.length; if (lon > 180) lon -= 360;
+        lat = ring.reduce((s, p) => s + p[1], 0) / ring.length;
+      }
       return {
         id: e.id, title: e.title, date: start.date.slice(0, 10), closed: e.closed ? e.closed.slice(0, 10) : null,
         lat: +lat.toFixed(2), lon: +lon.toFixed(2), link: e.link, sources: e.sources || [],

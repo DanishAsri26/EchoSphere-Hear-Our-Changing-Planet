@@ -39,7 +39,7 @@
   const fmtNum = (v, digits) => v === null || v === undefined ? "—" : digits ? v.toFixed(digits) : (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1));
 
   /* ---------- Map view ---------- */
-  const MAPS = window.ECHO_MAPS || {};
+  const MAPS = Object.assign({}, window.ECHO_MAPS || {}, window.ECHO_EXTRA_MAPS || {}); // extra: e.g. album 6 frames
   const KUCHING = { lat: 1.55, lon: 110.35 };
   const map = { front: "a", cache: [] };
   /** Map frames for a song: NASA frames for the albums; the uploaded picture for a snapshot song. */
@@ -70,8 +70,10 @@
     requestAnimationFrame(fitMap);
     map.cache = m.frames.map(f => { const im = new Image(); im.src = f.img; return im; }); // preload
     $("#map-a").src = m.frames[0].img; $("#map-a").classList.add("show"); $("#map-b").classList.remove("show"); map.front = "a";
-    $("#map-legend").hidden = song.id !== "kuching-2015"; // the global frames already show NASA's own legend
-    $(".map-credit").textContent = m.snapshot ? `Your picture: ${song.layers[0].name}${song.layers[0].hint ? ` · ${song.layers[0].hint}` : ""} · pink band = slice being played` : "NASA SVS 5012 · fire carbon emissions";
+    // a map may bring its own legend (album 6); the global fire frames already show NASA's legend
+    const legend = m.legend || (song.id === "kuching-2015" ? "assets/fire-legend.png" : null);
+    $("#map-legend").hidden = !legend; if (legend) $("#map-legend").src = legend;
+    $(".map-credit").textContent = m.snapshot ? `Your picture: ${song.layers[0].name}${song.layers[0].hint ? ` · ${song.layers[0].hint}` : ""} · pink band = slice being played` : (m.credit || "NASA SVS 5012 · fire carbon emissions");
     drawOverlay(song, 0, false);
   }
 
@@ -91,11 +93,11 @@
     }
     const f = m.frames[i] || m.frames[0];
     const fireOn = !effectiveMuted().has("fire");
-    const k = pinPos(m, KUCHING);
+    const k = m.noPin ? null : pinPos(m, KUCHING); // world-ocean maps have no Kuching pin
     const rings = fireOn ? f.hotspots.map(h => `<span class="ring${pulse && !reduceMotion ? " pulse" : ""}" style="left:${(h.x * 100).toFixed(2)}%;top:${(h.y * 100).toFixed(2)}%"></span>`).join("") : "";
-    $("#map-overlay").innerHTML = rings + `<span class="pin" style="left:${k.x.toFixed(2)}%;top:${k.y.toFixed(2)}%"><b>Kuching</b><i></i></span>` +
+    $("#map-overlay").innerHTML = rings + (k ? `<span class="pin" style="left:${k.x.toFixed(2)}%;top:${k.y.toFixed(2)}%"><b>Kuching</b><i></i></span>` : "") +
       `<span class="map-badge">${fmtDate(song, song.steps[i])}</span>`;
-    $("#map").setAttribute("aria-label", `NASA fire map, ${fmtDate(song, song.steps[i])}: ${f.hotspots.length} strong fire areas highlighted.`);
+    $("#map").setAttribute("aria-label", m.label ? `${m.label}, ${fmtDate(song, song.steps[i])}.` : `NASA fire map, ${fmtDate(song, song.steps[i])}: ${f.hotspots.length} strong fire areas highlighted.`);
   }
 
   function showFrame(song, i, pulse) {

@@ -94,6 +94,7 @@
           </div>
           <p id="live-status" class="muted"></p>
         </fieldset>
+        <fieldset id="snap-box" class="snap-box"></fieldset>
         <fieldset>
           <legend>1. Choose a source, then pick 1 to ${MAX} layers</legend>
           <label class="ctl studio-source">Source <select id="studio-source"></select></label>
@@ -131,6 +132,7 @@
     $("#studio-link").addEventListener("click", () => {
       const n = st.selected.length;
       if (n < MIN || n > MAX) { live($("#studio-status").textContent); return; }
+      if (isSnapshot()) { $("#studio-status").textContent = NO_LINK; live(NO_LINK); return; }
       copyLink(recipe(), $("#studio-status"));
     });
     renderOpts();
@@ -246,6 +248,21 @@
     renderOpts();
   }
 
+  /** Add (or replace) a whole source, e.g. the snapshot song, and make it the chosen source. */
+  function addSource(song) {
+    for (let i = CATALOG.length - 1; i >= 0; i--) if (CATALOG[i].song.id === song.id) CATALOG.splice(i, 1);
+    addToCatalog(song);
+    st.source = song.id; st.selected = []; st.instr = {};
+    renderOpts();
+  }
+  function removeSource(id) {
+    for (let i = CATALOG.length - 1; i >= 0; i--) if (CATALOG[i].song.id === id) CATALOG.splice(i, 1);
+    if (st.source === id) { st.source = sources()[0].id; st.selected = []; st.instr = {}; }
+    renderOpts();
+  }
+  const isSnapshot = () => { const s = sources().find(x => x.id === st.source); return !!(s && s.snapshot); };
+  const NO_LINK = "Snapshot songs cannot be shared as a link, because your pictures stay on your device. Use Save as WAV in the player to keep the music.";
+
   function renderSources() {
     const groups = [["Albums", s => !s.live && !s.snapshot], ["Your event (live)", s => s.live], ["Your snapshots", s => s.snapshot]];
     $("#studio-source").innerHTML = groups.map(([label, test]) => {
@@ -278,6 +295,7 @@
   async function applyRecipe(r) {
     if (!r || r.v !== 1 || !Array.isArray(r.l) || !GENRES[r.g]) throw new Error("This song link is broken.");
     const keys = r.l.map(x => String(x[0]));
+    if (keys.some(k => k.startsWith("snapshot:"))) throw new Error("This song was made from pictures on another device, so it cannot be opened from a link.");
     const liveKey = keys.find(k => k.startsWith("live-"));
     if (liveKey) {
       const id = liveKey.slice(5).split(":")[0];
@@ -378,7 +396,7 @@
   function makeSong() {
     const list = chosen(), base = list[0].song;
     return {
-      id: base.live ? base.id : "studio",
+      id: base.snapshot ? "snapshot" : base.live ? base.id : "studio",
       title: base.studioTitle || "My Studio song",
       subtitle: "Built in the Studio from NASA data",
       place: base.place,
@@ -389,6 +407,8 @@
       captions: base.captions,
       studio: true,
       live: !!base.live,
+      snapshot: !!base.snapshot,
+      intro: base.intro,
       limits: base.limits,
       layers: list.map(e => Object.assign({}, e.layer, { instrument: st.instr[e.key] })),
     };
@@ -398,9 +418,10 @@
     const n = st.selected.length;
     if (n < MIN || n > MAX) { live($("#studio-status").textContent); return; }
     APP.state.genre = st.genre;
-    rememberSong();
-    const r = recipe();
-    try { history.replaceState(null, "", `#song=${enc(r)}`); } catch (e) { /* address bar not updatable */ }
+    if (!isSnapshot()) { // snapshot songs live only on this device: no link, not in My songs
+      rememberSong();
+      try { history.replaceState(null, "", `#song=${enc(recipe())}`); } catch (e) { /* address bar not updatable */ }
+    }
     APP.openSong(makeSong());
   }
 
@@ -436,6 +457,6 @@
   // player "Copy link" button (shown for Studio songs only)
   $("#btn-share").addEventListener("click", () => copyLink(recipe(), $("#save-status")));
   window.addEventListener("hashchange", openFromHash);
-  window.EchoStudio = { showStudio, makeSong, state: st, catalog: CATALOG, recipe, songLink };
+  window.EchoStudio = { showStudio, makeSong, state: st, catalog: CATALOG, recipe, songLink, addSource, removeSource };
   openFromHash();
 })();

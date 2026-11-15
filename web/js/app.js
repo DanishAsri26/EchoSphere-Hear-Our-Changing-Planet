@@ -16,6 +16,8 @@
                long: "NASA's own numbers, published together with the visualization (not read from its pixels)." },
     data:    { icon: "📈", short: "NASA data, no visualization", badge: "From NASA data, no visualization",
                long: "Taken directly from a NASA data service or file, not from a visualization." },
+    upload:  { icon: "🖼️", short: "decoded from your picture", badge: "From your picture",
+               long: "Decoded in your browser from the colours of a picture you uploaded, using the legend you marked. EchoSphere cannot check where the picture comes from." },
   };
   const kindOf = l => KINDS[l.sourceKind] || KINDS.data;
   const albumKind = s => ["visual", "vizdata", "data"].map(k => KINDS[k]).find(k => s.layers.some(l => kindOf(l) === k));
@@ -28,6 +30,7 @@
   const live = msg => { const el = $("#live"); el.textContent = ""; setTimeout(() => { el.textContent = msg; }, 30); };
 
   function fmtDate(song, d) {
+    if (song.stepUnit === "slice") return d; // snapshot songs: "Slice 3 of 32"
     const m = MONTHS[parseInt(d.slice(5, 7), 10) - 1], y = d.slice(0, 4);
     if (song.stepUnit === "week") return `${parseInt(d.slice(8, 10), 10)} ${m.slice(0, 3)} ${y}`;
     return `${m} ${y}`;
@@ -115,7 +118,7 @@
   async function openSong(i) {
     const song = typeof i === "object" ? i : DATA.songs[i]; // a song object comes from the Studio
     $("#view-studio").hidden = true;
-    $("#btn-share").hidden = !song.studio; $("#save-status").textContent = "";
+    $("#btn-share").hidden = !song.studio || !!song.snapshot; $("#save-status").textContent = "";
     $("#btn-back").textContent = song.studio ? "◂ Back to the Studio" : "◂ Back to the jukebox";
     state.song = song; state.idx = 0; state.muted.clear(); state.solo = null; state.lastMonth = null;
     $("#view-home").hidden = true; $("#view-player").hidden = false; document.body.classList.add("in-player");
@@ -370,7 +373,7 @@
   }
 
   $("#kinds-legend").innerHTML = "Where each album's numbers come from: " +
-    Object.values(KINDS).map(k => `<span><span aria-hidden="true">${k.icon}</span> ${k.short}</span>`).join(" · ");
+    [KINDS.visual, KINDS.vizdata, KINDS.data].map(k => `<span><span aria-hidden="true">${k.icon}</span> ${k.short}</span>`).join(" · ");
   renderHome(); renderDrawer(); bind();
   window.EchoApp = { openSong, goHome, live, state, KINDS, kindOf };
 })();

@@ -70,7 +70,7 @@
     view.innerHTML = `
       <div class="player-top"><button class="link-btn" id="studio-back" type="button">◂ Back to the jukebox</button></div>
       <h1 id="studio-title" tabindex="-1">Studio</h1>
-      <p class="lede">Make your own song from real NASA data. Use our album layers, or start from a real event. Then choose a source, pick 1 to ${MAX} of its layers, a genre, and an instrument for each layer.</p>
+      <p class="lede">Make your own song from real NASA data. Use our album layers, start from a real event, or <a href="#snap-box" id="studio-jump-snap">use your own picture</a>. Then choose a source, pick 1 to ${MAX} of its layers, a genre, and an instrument for each layer.</p>
       <section id="my-songs" class="studio-mine" hidden aria-labelledby="my-songs-title">
         <h2 id="my-songs-title">My songs</h2>
         <p class="hint">Saved in this browser only. Use Copy link to keep a song on another device or share it.</p>
@@ -120,6 +120,7 @@
       </form>`;
 
     $("#studio-back").addEventListener("click", APP.goHome);
+    $("#studio-jump-snap").addEventListener("click", ev => { ev.preventDefault(); showPictures(); });
     view.querySelectorAll('input[name="studio-genre"]').forEach(r => r.addEventListener("change", () => setGenre(r.value)));
     $("#studio-form").addEventListener("submit", ev => { ev.preventDefault(); openInPlayer(); });
     $("#live-find").addEventListener("click", findEvents);
@@ -433,6 +434,15 @@
     live(`Studio. Choose a source and pick 1 to ${MAX} of its layers, a genre and an instrument for each layer. You can also start from a real NASA event.`);
   }
 
+  /** Open the Studio straight at the picture tool. */
+  function showPictures() {
+    showStudio();
+    const box = $("#snap-box"); if (!box) return;
+    box.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    const f = $("#snap-file"); if (f && !f.disabled) f.focus();
+    live("Make music from your pictures. Add a picture with a colour legend, then mark the legend.");
+  }
+
   /* ---------- Jukebox card ---------- */
   function addCard() {
     const card = document.createElement("article");
@@ -442,12 +452,16 @@
       <div>
         <h2>Studio</h2>
         <p>Build your own song</p>
-        <p>From our layers, or from a real event in NASA's records</p>
-        <div class="chips">${[...new Set(CATALOG.map(e => `${e.layer.icon} ${e.layer.name}`))].map(c => `<span class="chip">${c}</span>`).join("")}<span class="chip">🌍 Any event</span></div>
-        <button type="button" class="play small" id="btn-studio" aria-label="Open the Studio"><span aria-hidden="true">▶</span> Build</button>
+        <p>From our layers, a real event in NASA's records, or your own picture (snapshot)</p>
+        <div class="chips">${[...new Set(CATALOG.map(e => `${e.layer.icon} ${e.layer.name}`))].map(c => `<span class="chip">${c}</span>`).join("")}<span class="chip">🌍 Any event</span><span class="chip">🖼️ Your pictures</span></div>
+        <div class="studio-row">
+          <button type="button" class="play small" id="btn-studio" aria-label="Open the Studio"><span aria-hidden="true">▶</span> Build</button>
+          <button type="button" class="ghost" id="btn-studio-pic">🖼️ Use a picture</button>
+        </div>
       </div>`;
     $("#albums").prepend(card); // first, so everyone finds it
     $("#btn-studio").addEventListener("click", showStudio);
+    $("#btn-studio-pic").addEventListener("click", showPictures);
     // top-bar link: reachable from every page; stops a playing song first
     $("#btn-studio-nav").addEventListener("click", () => { if (!$("#view-player").hidden) APP.goHome(); showStudio(); });
   }
@@ -457,6 +471,6 @@
   // player "Copy link" button (shown for Studio songs only)
   $("#btn-share").addEventListener("click", () => copyLink(recipe(), $("#save-status")));
   window.addEventListener("hashchange", openFromHash);
-  window.EchoStudio = { showStudio, makeSong, state: st, catalog: CATALOG, recipe, songLink, addSource, removeSource };
+  window.EchoStudio = { showStudio, showPictures, makeSong, state: st, catalog: CATALOG, recipe, songLink, addSource, removeSource };
   openFromHash();
 })();

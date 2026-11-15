@@ -60,6 +60,7 @@ EchoSphere is a web jukebox that turns NASA Earth data and visualizations into m
 
 ## Other tools and resources
 - [Tone.js](https://tonejs.github.io/) (MIT): audio engine in the browser
+- [Tesseract.js](https://github.com/naptha/tesseract.js) 5.1.1 with English data (Apache-2.0): reads legend numbers in the picture tool, in the browser. Files and licence: `web/vendor/tesseract/`
 - Instrument samples: [tonejs-instruments](https://github.com/nbrosowsky/tonejs-instruments) (CC BY 3.0) and FluidR3_GM via [gleitz/midi-js-soundfonts](https://github.com/gleitz/midi-js-soundfonts) (MIT / CC BY 3.0). Full list: `web/audio/CREDITS.md`
 - Python, NumPy, Pillow, FFmpeg (data pipeline); GitHub Pages (hosting)
 - Research on sonification and accessibility (e.g. Walker & Mauney 2010 on pitch polarity; WebAIM screen reader and low-vision surveys)

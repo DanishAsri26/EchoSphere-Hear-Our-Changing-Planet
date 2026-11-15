@@ -124,6 +124,7 @@ Inspired by NASA's Caldwell 73 sonification (SVS 13786), where the picture stays
 - Step 1 *How should the colours be read?*: the picture's colour legend (then mark it, pink box, and type low/high values and units) or a no-legend rule (blue → green → yellow → red, darker, or lighter = higher; relative 0–100, black/grey/white = none). No legend box is shown until one is marked.
 - **Map area** (cyan box): only that part is read and shown in the player; everything outside is dimmed. *What do the colours show?* gives the pitch note ("redder colour = more rain").
 - In the player the picture (cropped to the area) replaces the map, with a **pink band** on the slice being played; the chart reads West → East. Saved pictures can be **edited** without uploading again.
+- **🔎 Find legend automatically** (task 2.31): finds the colour bar (pink box) and sets a map area without the legend; then reads the numbers, units and title with Tesseract.js in the browser (downloads ~7 MB once; the picture is not uploaded). Fills low/high, units, *What do the colours show?* and the new **Logarithmic legend** tick; the status line (and screen reader) says what was found, what was unclear (left empty) and to check before *Add as layer*. Nothing is saved automatically.
 
 ### 3.9 Data-type labels (added 15 Nov)
 Each layer has `sourceKind`: 🎨 decoded from a NASA visualization · 📄 NASA values behind a visualization · 📈 NASA data, no visualization · 🖼️ decoded from your picture. Shown as an album badge, chip icons, in the Studio list and in the drawer.

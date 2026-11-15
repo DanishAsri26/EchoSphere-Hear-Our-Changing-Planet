@@ -3,6 +3,8 @@
    low/high values. Every pixel inside the area is matched to the nearest legend colour, and the area is read
    west → east in 32 slices (one note per slice). Each picture becomes one layer of a "Your snapshots" source.
    Saved pictures can be edited (area, legend, values) without uploading them again.
+   "Find legend automatically" (task 2.31, js/legendfind.js) proposes the legend box, map area, values, units and
+   linear/logarithmic scale; the user checks them before saving. Logarithmic legends are read in log10.
    Pictures never leave the browser. Pixels that match no legend colour (text, borders, background) are silent.
    Code written with AI assistance (Claude, Anthropic). */
 (function () {
@@ -82,7 +84,7 @@
   }
 
   /** Values per slice of the map area (west → east): mean legend value of matching pixels, null if too few match. */
-  function decode(img, area, legend, reverse, low, high, scale) {
+  function decode(img, area, legend, reverse, low, high, scale, log) {
     const px = pixels(img), tOf = T_OF[scale];
     if (tOf) legend = { x: -1, y: -1, w: 0, h: 0 }; // no legend to skip
     const pal = tOf ? [] : palette(px, legend, reverse);
@@ -115,7 +117,9 @@
     // without a legend: black/grey/white mean "none" and count as 0, so a slice with a few spots sounds low.
     for (let s = 0; s < SLICES; s++) {
       const mean = tOf ? sum[s] / Math.max(1, seen[s]) : sum[s] / Math.max(1, cnt[s]);
-      values.push(cnt[s] >= 5 ? +(low + mean * (high - low)).toPrecision(4) : null); // sparse maps (e.g. fires) are fine
+      // logarithmic legends: equal steps along the bar are equal ratios (e.g. 0.001 → 0.01 → 0.1)
+      const v = log ? Math.pow(10, Math.log10(low) + mean * (Math.log10(high) - Math.log10(low))) : low + mean * (high - low);
+      values.push(cnt[s] >= 5 ? +v.toPrecision(4) : null); // sparse maps (e.g. fires) are fine
     }
     const matched = cnt.reduce((a, b) => a + b, 0) / Math.max(1, seen.reduce((a, b) => a + b, 0));
     // the player shows only the map area
@@ -127,7 +131,7 @@
 
   const whatOf = l => l.what || "of what the map shows";
   const noteFor = l => (l.scale || "legend") === "legend"
-    ? `Higher notes = higher values on the picture's legend (${l.low} to ${l.high} ${l.units})${l.what ? `, which means more ${l.what}` : ""}.`
+    ? `Higher notes = higher values on the picture's legend (${l.low} to ${l.high} ${l.units}${l.log ? ", logarithmic scale" : ""})${l.what ? `, which means more ${l.what}` : ""}.`
     : SCALES[l.scale].note(whatOf(l)) + " Levels are relative (0–100) because the picture has no legend.";
   const hintFor = l => (l.scale || "legend") === "legend" ? `higher legend value = higher note${l.what ? ` (more ${l.what})` : ""}` : SCALES[l.scale].hint(l.what || "of it");
 
@@ -147,7 +151,8 @@
         "EchoSphere cannot check where an uploaded picture comes from. Use NASA visualizations (for example EIC snapshots) for real data.",
         "Each picture's map area is read west → east in 32 slices; a note is the average legend value of the pixels in that slice. Pixels that match no legend colour (text, borders, background) are ignored, and a slice with almost no matches is silent.",
         "Pictures without a legend give relative levels (0–100) from their colours, not real units.",
-        "Values assume the legend is linear between the low and high values you typed. Logarithmic legends, compressed screenshots and map projections make values less exact.",
+        "Values assume the legend is linear between the low and high values, unless \"Logarithmic legend\" is ticked (then equal steps along the bar are equal ratios). Compressed screenshots and map projections make values less exact.",
+        ...(sn.layers.some(l => l.auto) ? ["The legend of at least one picture was found automatically in your browser (colour-bar search + Tesseract.js text reading, Apache-2.0 licence) and checked by you before saving."] : []),
         "Your pictures never leave your device, so snapshot songs cannot be shared as a link. Use Save as WAV to keep the music.",
       ],
       layers: sn.layers.map((l, i) => ({
@@ -157,7 +162,7 @@
         describe: `Decoded from your picture "${l.file}". ${noteFor(l)}`,
         source: { name: `Your picture: ${l.file}`, url: "#" },
         method: l.scale !== "legend" ? `Map area ${pct(l.area)}; no legend: ${SCALES[l.scale].label.replace("No legend: ", "")} (relative 0–100). ${Math.round(l.matched * 100)}% of the area's pixels had a colour on this scale.` :
-          `Map area ${pct(l.area)}; legend ${pct(l.legend)}, read ${l.reverse ? "high → low" : "low → high"} as ${l.low} to ${l.high} ${l.units}. ${Math.round(l.matched * 100)}% of the area's pixels matched a legend colour.`,
+          `Map area ${pct(l.area)}; legend ${pct(l.legend)}, read ${l.reverse ? "high → low" : "low → high"} as ${l.low} to ${l.high} ${l.units}${l.log ? " on a logarithmic scale" : ""}.${l.auto ? " Legend found automatically, then checked by the user." : ""} ${Math.round(l.matched * 100)}% of the area's pixels matched a legend colour.`,
       })),
     };
   }
@@ -190,6 +195,8 @@
           ${Object.entries(SCALES).map(([k, v]) => `<label class="ctl"><input type="radio" name="snap-scale" value="${k}"${k === "legend" ? " checked" : ""}> ${v.label}</label>`).join("")}
           <label class="ctl">What do the colours show? <input type="text" id="snap-what" maxlength="30" placeholder="e.g. rain, fire, heat"></label>
         </fieldset>
+        <div class="studio-row snap-auto"><button type="button" class="ghost" id="snap-find" aria-describedby="snap-find-hint">🔎 Find legend automatically</button>
+          <small class="muted" id="snap-find-hint">Looks for a colour bar and reads its numbers, in your browser (downloads a 7 MB text reader the first time; your picture is not uploaded). Check the result before adding.</small></div>
         <div class="toggle snap-mode" role="radiogroup" aria-label="What you draw on the picture">
           <label class="seg small"><input type="radio" name="snap-mode" value="area" checked> ① Map area</label>
           <label class="seg small legend-only"><input type="radio" name="snap-mode" value="legend"> ② Legend</label>
@@ -205,6 +212,7 @@
           <label class="ctl">Layer name <input type="text" id="snap-name" maxlength="40"></label>
         </div>
         <label class="ctl legend-only"><input type="checkbox" id="snap-rev"> The legend's high end is on the left (or top)</label>
+        <label class="ctl legend-only"><input type="checkbox" id="snap-log"> Logarithmic legend (numbers grow by the same factor, e.g. 0.001, 0.01, 0.1, 1)</label>
         <div class="studio-row"><button type="button" class="ghost" id="snap-add">Add as layer</button><button type="button" class="ghost" id="snap-cancel">Cancel</button></div>
       </div>
       <ul id="snap-list" class="snap-list"></ul>
@@ -224,6 +232,7 @@
     }));
     $("#snap-whole").addEventListener("click", () => { sn.area = Object.assign({}, WHOLE); fillInputs(); draw(); live("Map area: the whole picture."); });
     $("#snap-add").addEventListener("click", saveLayer);
+    $("#snap-find").addEventListener("click", autoFind);
     $("#snap-cancel").addEventListener("click", () => { const was = sn.editing; closeEditor(); status(was >= 0 ? "No changes saved." : "Picture discarded."); $("#snap-file").focus(); });
     $("#snap-list").addEventListener("click", e => {
       const b = e.target.closest("button[data-i]"); if (!b) return;
@@ -257,10 +266,10 @@
     const src = URL.createObjectURL(f), img = new Image();
     img.onload = () => {
       sn.editing = -1; sn.area = Object.assign({}, WHOLE); sn.legend = { x: 0, y: 0, w: 0, h: 0 }; sn.legendSet = false;
-      $("#snap-name").value = `Picture ${sn.layers.length + 1}`; $("#snap-what").value = "";
+      $("#snap-name").value = `Picture ${sn.layers.length + 1}`; $("#snap-what").value = ""; $("#snap-log").checked = false; sn.auto = false;
       openEditor(img, src, clean(f.name, 60));
       setMode("area"); setScale("legend");
-      status(`Loaded ${sn.file}. First choose how its colours should be read: with its colour legend, or without one. Then drag over the map area you want to hear.`);
+      status(`Loaded ${sn.file}. First choose how its colours should be read: with its colour legend, or without one (or press "Find legend automatically"). Then drag over the map area you want to hear.`);
       $("#snap-a-x").focus();
     };
     img.onerror = () => { URL.revokeObjectURL(src); status("This picture could not be opened. Try a PNG or JPG."); };
@@ -275,7 +284,7 @@
     img.onload = () => {
       sn.editing = i; sn.area = Object.assign({}, l.area); sn.legend = Object.assign({}, l.legend); sn.legendSet = (l.scale || "legend") === "legend";
       $("#snap-low").value = l.low; $("#snap-high").value = l.high; $("#snap-units").value = l.units;
-      $("#snap-name").value = l.name; $("#snap-rev").checked = l.reverse; $("#snap-what").value = l.what || "";
+      $("#snap-name").value = l.name; $("#snap-rev").checked = l.reverse; $("#snap-what").value = l.what || ""; $("#snap-log").checked = !!l.log; sn.auto = !!l.auto;
       openEditor(img, l.src, l.file);
       setMode("area"); setScale(l.scale || "legend");
       status(`Editing ${l.name}. Change the map area, legend or values, then press Save changes.`);
@@ -337,15 +346,16 @@
     if (outside(area) || area.w < 3 || area.h < 3) { status("The map area is outside the picture or too small. Check its Left, Top, Width and Height."); $("#snap-a-x").focus(); return; }
     if (!noLegend && !sn.legendSet) { status('This picture is set to "has a colour legend", but no legend is marked yet. Choose ② Legend and drag over the colour bar, or pick a "No legend" option if the picture has none.'); const r = document.querySelector('input[name="snap-mode"][value="legend"]'); if (r) r.focus(); return; }
     if (!noLegend && outside(legend)) { status("The legend box is outside the picture. Check its Left, Top, Width and Height."); $("#snap-x").focus(); return; }
-    const reverse = $("#snap-rev").checked;
-    const { values, matched, flat, picture } = decode(sn.img, area, legend, reverse, low, high, scale);
+    const reverse = $("#snap-rev").checked, log = !noLegend && $("#snap-log").checked;
+    if (log && (low <= 0 || high <= 0)) { status("A logarithmic legend needs low and high values above 0. Check the values, or untick Logarithmic legend."); $("#snap-low").focus(); return; }
+    const { values, matched, flat, picture } = decode(sn.img, area, legend, reverse, low, high, scale, log);
     const n = values.filter(v => v !== null).length;
     if (flat) { status("The legend box does not look like a colour bar: its colour hardly changes. Switch to ② Legend and move the box onto the legend's colours."); $("#snap-x").focus(); return; }
     if (n < 2 || matched < 0.005) { status(noLegend ? `Only ${Math.round(matched * 100)}% of the map area has colours on this scale, too little to make music. Try another "How should the colours be read?" option, or a bigger map area.` : `Only ${Math.round(matched * 100)}% of the map area matches the legend colours, too little to make music. Check that the legend box covers only the colour bar, and that the map area shows the map.`); $("#snap-x").focus(); return; }
     const name = clean($("#snap-name").value.trim() || `Picture ${sn.layers.length + 1}`, 40);
     const what = clean($("#snap-what").value.trim(), 30);
-    const units = noLegend ? `relative ${what ? what + " " : ""}level (0–100)` : clean($("#snap-units").value.trim(), 20);
-    const layer = { name, units, low, high, reverse, area, legend, values, matched, picture, file: sn.file, src: sn.src, scale, what };
+    const units = noLegend ? `relative ${what ? what + " " : ""}level (0–100)` : clean($("#snap-units").value.trim(), 50);
+    const layer = { name, units, low, high, reverse, log, auto: !noLegend && !!sn.auto, area, legend, values, matched, picture, file: sn.file, src: sn.src, scale, what };
     const edited = sn.editing >= 0;
     if (edited) sn.layers[sn.editing] = layer; else sn.layers.push(layer);
     sn.src = null; // now owned by the layer
@@ -357,6 +367,37 @@
     const first = document.querySelector('.studio-opt[data-key^="snapshot:"] input'); if (first) first.focus();
   }
 
+  /** "Find legend automatically": propose legend box, map area and values; the user checks, then saves. */
+  async function autoFind() {
+    const L = window.EchoLegend, btn = $("#snap-find"), img = sn.img;
+    if (!img || !L || btn.disabled) return;
+    btn.disabled = true;
+    try {
+      const bar = L.findBar(img);
+      if (!bar) { status('No colour legend found in this picture. If it has none, choose a "No legend" option under "How should the colours be read?". If it has one, mark it yourself with ② Legend.'); return; }
+      sn.legend = Object.assign({}, bar.box); sn.legendSet = true; sn.auto = true;
+      sn.area = L.guessArea(bar, img.naturalWidth / img.naturalHeight);
+      setScale("legend"); fillInputs(); draw();
+      status(`Found a ${bar.horizontal ? "horizontal" : "vertical"} colour bar (pink box, ${pct(sn.legend)}). Map area set to ${pct(sn.area)}. Now reading its numbers…`);
+      let r;
+      try { r = await L.readLabels(img, bar, m => { $("#snap-status").textContent = m; }); }
+      catch (e) { if (sn.img === img) status("Found the colour bar, but the text reader could not load, so please type the low and high values and units yourself."); return; }
+      if (sn.img !== img) return; // the user closed or changed the picture meanwhile
+      $("#snap-low").value = r.low === null ? "" : r.low; $("#snap-high").value = r.high === null ? "" : r.high;
+      $("#snap-rev").checked = r.reverse; $("#snap-log").checked = r.log;
+      $("#snap-units").value = r.units ? r.units.slice(0, 50) : "";
+      if (r.what && !$("#snap-what").value) $("#snap-what").value = r.what.toLowerCase().slice(0, 30);
+      const parts = [`Found a ${bar.horizontal ? "horizontal" : "vertical"} colour bar.`];
+      if (r.low !== null) parts.push(`Read it as ${r.low} to ${r.high}, ${r.log ? "logarithmic" : "linear"}${r.reverse ? ", high end first" : ""} (numbers seen: ${r.labels.join(", ")}). ${r.sure === "yes" ? "These numbers look consistent" : "I read only two numbers, so please check them"}.`);
+      else parts.push(`${r.note} I left Legend low and high empty: please type them.`);
+      parts.push(r.units ? `Units: ${r.units}.` : r.unclear.includes("units") ? "There is a units line, but I could not read it clearly: please type the units." : "No units found: please type them.");
+      if (r.what) parts.push(`Title: ${r.what}.`);
+      parts.push(`Map area: ${pct(sn.area)}. Check everything, then press ${sn.editing >= 0 ? "Save changes" : "Add as layer"}.`);
+      status(parts.join(" "));
+      $(r.low === null ? "#snap-low" : "#snap-add").focus();
+    } finally { btn.disabled = false; }
+  }
+
   function closeEditor() {
     $("#snap-edit").hidden = true;
     // a new upload that was not saved gives its memory back; a saved picture keeps its own copy
@@ -365,7 +406,7 @@
   }
 
   function renderList() {
-    $("#snap-list").innerHTML = sn.layers.map((l, i) => `<li><span>🖼️ <b>${esc(l.name)}</b> <small class="muted">${esc(noteFor(l))}</small><small class="muted">${esc(l.file)} · ${l.scale === "legend" ? `${l.low} to ${l.high} ${esc(l.units)}` : "no legend, relative levels"} · ${Math.round(l.matched * 100)}% matched${l.area.w < 100 || l.area.h < 100 ? " · part of the picture" : ""}</small></span>
+    $("#snap-list").innerHTML = sn.layers.map((l, i) => `<li><span>🖼️ <b>${esc(l.name)}</b> <small class="muted">${esc(noteFor(l))}</small><small class="muted">${esc(l.file)} · ${l.scale === "legend" ? `${l.low} to ${l.high} ${esc(l.units)}${l.log ? " (log)" : ""}` : "no legend, relative levels"} · ${Math.round(l.matched * 100)}% matched${l.area.w < 100 || l.area.h < 100 ? " · part of the picture" : ""}</small></span>
       <span class="my-actions"><button type="button" class="ghost" data-act="edit" data-i="${i}" aria-label="Edit ${esc(l.name)}">Edit</button>
       <button type="button" class="ghost" data-act="remove" data-i="${i}" aria-label="Remove ${esc(l.name)}">Remove</button></span></li>`).join("");
     $("#snap-file").disabled = sn.layers.length >= MAX_PICS;

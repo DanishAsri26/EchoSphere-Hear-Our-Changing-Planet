@@ -63,7 +63,7 @@ Updated 15 Nov: the **Studio** card comes first (full width) with *Build* and *U
 │                                                                  │
 │   ┌───────────────────────┐      ┌───────────────────────┐       │
 │   │   (( CD cover ))      │      │   (( CD cover ))      │       │
-│   │  Kuching, 2015        │      │  The Whole Planet,2015│       │
+│   │  Borneo Haze, 2015    │      │  The Whole Planet,2015│       │
 │   │  Borneo · Jun–Dec 2015│      │  Global · 2014–2016   │       │
 │   │  🔥 🌧️ 🏭              │      │  🔥 🏭 🌊              │       │
 │   │  [ ▶ Play ]           │      │  [ ▶ Play ]           │       │
@@ -139,7 +139,7 @@ Each layer has `sourceKind`: 🎨 decoded from a NASA visualization · 📄 NASA
 | Feature | Design |
 |---|---|
 | Keyboard | `Space` play/pause · `R` restart · `G` switch genre · `1`–`4` mute layer · `Shift+1`–`4` solo · `H` how to listen · `←/→` step in explore mode |
-| Screen reader | Real `<button>` elements with labels; an `aria-live="polite"` region announces "Playing Kuching 2015, Orchestra", the month at each new month, and "Paused at October 2015". |
+| Screen reader | Real `<button>` elements with labels; an `aria-live="polite"` region announces "Playing Borneo Haze, 2015, Orchestra", the month at each new month, and "Paused at October 2015". |
 | Chart | Decorative for screen readers (`aria-hidden`), with a data table alternative in the Data drawer. |
 | Focus | 3px amber focus ring on every control. |
 | Motion | CD spin and equaliser animations stop under `prefers-reduced-motion`. |
@@ -221,7 +221,7 @@ There is **no server**. The "backend" is an offline Python pipeline that turns N
 {
   "songs": [{
     "id": "kuching-2015",
-    "title": "Kuching, 2015",
+    "title": "Borneo Haze, 2015",
     "place": "Borneo window centred on Sarawak",
     "cover": "assets/cover-kuching.jpg",
     "steps": ["2015-06-01", "2015-06-08", "..."],

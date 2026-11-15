@@ -17,7 +17,7 @@ Story year: **the El Niño of 2015**.
 
 | Song | Place | Time steps | Layers (topics) |
 |---|---|---|---|
-| **Song 1: "Kuching, 2015"** | Borneo window centred on Sarawak (lat −5° to 8°, lon 105° to 120°) | 31 weekly steps, Jun–Dec 2015 | Wildfires · Rain (water / drought) · Greenhouse gases (CO₂) |
+| **Song 1: "Borneo Haze, 2015"** (renamed from "Kuching, 2015": the window covers Borneo and nearby Malaysia and Indonesia) | Borneo window centred on Sarawak (lat −5° to 8°, lon 105° to 120°) | 31 weekly steps, Jun–Dec 2015 | Wildfires · Rain (water / drought) · Greenhouse gases (CO₂) |
 | **Song 2: "The Whole Planet, 2015"** | Global | 36 monthly steps, Jan 2014–Dec 2016 | Wildfires · Greenhouse gases (CO₂) · Sea level change |
 
 Each song plays in **2 genres**: Orchestra and Modern Band → **4 tracks** in total (Conductor's target).

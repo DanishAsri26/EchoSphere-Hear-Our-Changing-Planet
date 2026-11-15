@@ -4,7 +4,7 @@ Merge the pipeline outputs in data/ into ONE file the web app plays:
   web/data/songs.json  and  web/data/songs.js  (same content; the .js copy lets the
   page work even when opened straight from disk).
 
-Song 1 "Kuching, 2015": 31 weekly steps, Jun-Dec 2015, Borneo window.
+Song 1 "Borneo Haze, 2015": 31 weekly steps, Jun-Dec 2015, Borneo window.
 Song 2 "The Whole Planet, 2015": 36 monthly steps, Jan 2014-Dec 2016, global.
 Usage (from the project root): python3 pipeline/build_songs.py
 """
@@ -51,9 +51,9 @@ def song_kuching():
     }
     return {
         "id": "kuching-2015",
-        "title": "Kuching, 2015",
-        "subtitle": "Fire, rain and carbon over Borneo",
-        "place": "Borneo window centred on Sarawak (5°S–8°N, 105°E–120°E)",
+        "title": "Borneo Haze, 2015",
+        "subtitle": "Fires, rain and carbon in the 2015 Southeast Asian haze",
+        "place": "Borneo and nearby Malaysia and Indonesia (5°S–8°N, 105°E–120°E); rain measured in Kuching",
         "period": "June – December 2015 · weekly",
         "cover": "assets/cover-kuching.jpg",
         "stepUnit": "week",

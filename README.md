@@ -18,7 +18,7 @@ EchoSphere is a web jukebox that turns NASA Earth data and visualizations into m
 ## What you can do
 | Feature | What it does |
 |---|---|
-| **Albums** | Ready-made songs from NASA data: *Kuching 2015* (Borneo fires, rain, CO₂ during El Niño), *The Whole Planet 2015* (global fires, CO₂, sea level), three event albums (*Pacific Drought 2015*, *South America Floods 2015*, *Black Summer 2019*) and *The Ocean Breathes: Diatoms 1998–2012* (solo layer) |
+| **Albums** | Ready-made songs from NASA data: *Borneo Haze 2015* (fires, Kuching rain and CO₂ during the El Niño haze over Borneo, Malaysia and Indonesia), *The Whole Planet 2015* (global fires, CO₂, sea level), three event albums (*Pacific Drought 2015*, *South America Floods 2015*, *Black Summer 2019*) and *The Ocean Breathes: Diatoms 1998–2012* (solo layer) |
 | **Two genres** | Orchestra or Modern Band, switchable while playing |
 | **Mixer** | Mute or solo each layer to hear one topic at a time |
 | **How to listen** | A short guide per album: low, middle and high reference tones, what each instrument means, which ear it plays in |
@@ -85,4 +85,4 @@ EchoSphere was built by one human team member working with **Claude (Anthropic)*
 - **The idea is the team member's own:** a jukebox where linked Earth topics play together, colour legends turned back into values, a choice of genre and instruments, then play and save.
 - **AI helped with:** literature research, finding data sources, writing code (Python data pipeline; HTML/CSS/JavaScript app), and drafting text (this README, project descriptions). Code files written with AI carry the header comment *"Code written with AI assistance (Claude, Anthropic)."*
 - **Not AI-generated:** all data values come from NASA files. All music is generated live in your browser by our code from that data, using recorded instrument samples; **no AI audio model** is used. No images inside the app are AI-generated. No NASA logos or insignia are used in our designs.
-- **Demo video (AI-generated, watermarked):** the 30-second demo's animation was made with code written by Claude, and its voice-over is AI-generated with Kokoro TTS (open-source text-to-speech). The video carries a visible "AI-GENERATED" label, and this is also stated in its credits line, YouTube description and file metadata. Its soundtrack is EchoSphere's own Kuching 2015 song, made from NASA data; the map is a NASA SVS frame.
+- **Demo video (AI-generated, watermarked):** the 30-second demo's animation was made with code written by Claude, and its voice-over is AI-generated with Kokoro TTS (open-source text-to-speech). The video carries a visible "AI-GENERATED" label, and this is also stated in its credits line, YouTube description and file metadata. Its soundtrack is EchoSphere's own Borneo Haze 2015 song (then called Kuching 2015), made from NASA data; the map is a NASA SVS frame.

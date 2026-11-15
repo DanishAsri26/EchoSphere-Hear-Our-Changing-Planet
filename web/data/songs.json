@@ -132,6 +132,7 @@
       "name": "NASA SVS 5012, Weekly carbon emissions from fires",
       "url": "https://svs.gsfc.nasa.gov/5012"
      },
+     "sourceKind": "visual",
      "method": "Months read from the date label printed on the video. Video colours are compressed, so values are scaled to match the exact EXR frames 2682 (Sep), 2694 (Oct), 2704 (Nov)."
     },
     {
@@ -182,6 +183,7 @@
       "name": "NASA POWER daily point data",
       "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=PRECTOTCORR,T2M,RH2M&community=AG&latitude=1.55&longitude=110.35&start=20150601&end=20151231&format=JSON"
      },
+     "sourceKind": "data",
      "method": "Weekly means of daily NASA POWER values (PRECTOTCORR)."
     },
     {
@@ -232,6 +234,7 @@
       "name": "NASA SVS 5024, AIRS CO₂ (CO2_frames_dates_values.csv)",
       "url": "https://svs.gsfc.nasa.gov/5024"
      },
+     "sourceKind": "vizdata",
      "method": "NASA's own monthly value from the dates CSV, repeated for each week of that month."
     }
    ]
@@ -381,6 +384,7 @@
       "name": "NASA SVS 5012, Weekly carbon emissions from fires",
       "url": "https://svs.gsfc.nasa.gov/5012"
      },
+     "sourceKind": "visual",
      "method": "One mid-month frame of the dated video per month, calibrated to exact EXR frames."
     },
     {
@@ -436,6 +440,7 @@
       "name": "NASA SVS 5024, AIRS CO₂ (CO2_frames_dates_values.csv)",
       "url": "https://svs.gsfc.nasa.gov/5024"
      },
+     "sourceKind": "vizdata",
      "method": "NASA's own monthly value from the dates CSV."
     },
     {
@@ -491,6 +496,7 @@
       "name": "NASA GSFC Global Mean Sea Level v5.1 (NASA STEM spreadsheet)",
       "url": "https://www.nasa.gov/stem-content/sea-level-height-data-set/"
      },
+     "sourceKind": "data",
      "method": "Monthly means of ~10-day satellite values."
     }
    ]

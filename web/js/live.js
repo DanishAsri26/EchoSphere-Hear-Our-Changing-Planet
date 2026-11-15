@@ -117,6 +117,7 @@
         source: { name: `NASA POWER daily API (${p.param}), ${ev.lat}°, ${ev.lon}°`, url },
         method: `Daily ${p.param} values from NASA POWER (satellite and MERRA-2 model estimates on a grid of about 50 km) at ${ev.lat}°, ${ev.lon}°, ${ev.where}. Averaged per week (at least 4 days needed). Event date and place from NASA EONET (${ev.id}).`,
         live: true,
+        sourceKind: "data",
       });
     }).filter(Boolean);
     if (layers.length < 2) throw new Error("NASA POWER has too little data for this place and time.");

@@ -126,7 +126,7 @@
       <label class="studio-opt${e.song.live ? " live" : ""}" data-key="${e.key}">
         <input type="checkbox" value="${e.key}" aria-describedby="studio-why-${i}">
         <span><span style="color:${e.layer.color}" aria-hidden="true">●</span> ${e.layer.icon} <b>${e.layer.name}</b>, from “${e.song.title}”
-          <small class="muted">${e.layer.units} · ${e.song.period}</small>
+          <small class="muted">${e.layer.units} · ${e.song.period} · <span aria-hidden="true">${APP.kindOf(e.layer).icon}</span> ${APP.kindOf(e.layer).short}</small>
           <small class="studio-why" id="studio-why-${i}"></small></span>
       </label>`).join("");
     host.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -296,8 +296,10 @@
         <div class="chips">${[...new Set(CATALOG.map(e => `${e.layer.icon} ${e.layer.name}`))].map(c => `<span class="chip">${c}</span>`).join("")}<span class="chip">🌍 Any event</span></div>
         <button type="button" class="play small" id="btn-studio" aria-label="Open the Studio"><span aria-hidden="true">▶</span> Build</button>
       </div>`;
-    $("#albums").appendChild(card);
+    $("#albums").prepend(card); // first, so everyone finds it
     $("#btn-studio").addEventListener("click", showStudio);
+    // top-bar link: reachable from every page; stops a playing song first
+    $("#btn-studio-nav").addEventListener("click", () => { if (!$("#view-player").hidden) APP.goHome(); showStudio(); });
   }
 
   build();

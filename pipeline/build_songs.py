@@ -67,6 +67,7 @@ def song_kuching():
                 "register": "high", "pan": 0.3,
                 "describe": "How much of the Borneo window is burning. Higher note = more fire. A drum hit marks very intense burning (10+ g of carbon per m² per week).",
                 "source": {"name": "NASA SVS 5012, Weekly carbon emissions from fires", "url": "https://svs.gsfc.nasa.gov/5012"},
+                "sourceKind": "visual",  # numbers decoded from the visualization's colours
                 "method": fire["method"],
             },
             {
@@ -75,6 +76,7 @@ def song_kuching():
                 "restBelow": 1.0, "register": "mid", "pan": -0.3,
                 "describe": "Average daily rain in Kuching each week. Higher note = more rain. Silence = almost no rain (drought).",
                 "source": {"name": "NASA POWER daily point data", "url": rain["url"]},
+                "sourceKind": "data",  # NASA data API, no visualization
                 "method": "Weekly means of daily NASA POWER values (PRECTOTCORR).",
             },
             {
@@ -83,6 +85,7 @@ def song_kuching():
                 "register": "low", "pan": 0.0, "sustain": True,
                 "describe": "Carbon dioxide in the air. A slow low drone that steps up when CO₂ rises.",
                 "source": {"name": "NASA SVS 5024, AIRS CO₂ (CO2_frames_dates_values.csv)", "url": "https://svs.gsfc.nasa.gov/5024"},
+                "sourceKind": "vizdata",  # NASA's own values published with the visualization
                 "method": "NASA's own monthly value from the dates CSV, repeated for each week of that month.",
             },
         ],
@@ -128,6 +131,7 @@ def song_planet():
                 "register": "high", "pan": 0.3,
                 "describe": "How much of the world's land (90°N–60°S) is burning each month. Higher note = more fire.",
                 "source": {"name": "NASA SVS 5012, Weekly carbon emissions from fires", "url": "https://svs.gsfc.nasa.gov/5012"},
+                "sourceKind": "visual",  # numbers decoded from the visualization's colours
                 "method": "One mid-month frame of the dated video per month, calibrated to exact EXR frames.",
             },
             {
@@ -136,6 +140,7 @@ def song_planet():
                 "register": "low", "pan": 0.0, "sustain": True,
                 "describe": "Carbon dioxide in the air. A slow low drone that steps up as CO₂ rises.",
                 "source": {"name": "NASA SVS 5024, AIRS CO₂ (CO2_frames_dates_values.csv)", "url": "https://svs.gsfc.nasa.gov/5024"},
+                "sourceKind": "vizdata",  # NASA's own values published with the visualization
                 "method": "NASA's own monthly value from the dates CSV.",
             },
             {
@@ -144,6 +149,7 @@ def song_planet():
                 "register": "lowmid", "pan": -0.15, "legato": True,
                 "describe": "Global mean sea level. Higher note = higher seas.",
                 "source": {"name": "NASA GSFC Global Mean Sea Level v5.1 (NASA STEM spreadsheet)", "url": "https://www.nasa.gov/stem-content/sea-level-height-data-set/"},
+                "sourceKind": "data",  # NASA data file, no visualization
                 "method": "Monthly means of ~10-day satellite values.",
             },
         ],

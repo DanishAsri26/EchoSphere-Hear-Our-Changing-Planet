@@ -83,6 +83,7 @@
       "name": "NASA POWER daily API (PRECTOTCORR), -17.8°, 178.0°",
       "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=PRECTOTCORR,RH2M,T2M&community=AG&longitude=178.0&latitude=-17.8&start=20150720&end=20151115&format=JSON"
      },
+     "sourceKind": "data",
      "method": "Daily PRECTOTCORR from NASA POWER (satellite and MERRA-2 model estimates on a grid of about 50 km) at -17.8°, 178.0°: Viti Levu, Fiji. EONET's area covers the whole western Pacific (mostly ocean); its only source is the ReliefWeb Fiji drought report, so we listen in Fiji. Averaged per week (at least 4 days needed). Event date and place from NASA EONET EONET_212. Built by pipeline/build_event_songs.py."
     },
     {
@@ -119,6 +120,7 @@
       "name": "NASA POWER daily API (RH2M), -17.8°, 178.0°",
       "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=PRECTOTCORR,RH2M,T2M&community=AG&longitude=178.0&latitude=-17.8&start=20150720&end=20151115&format=JSON"
      },
+     "sourceKind": "data",
      "method": "Daily RH2M from NASA POWER (satellite and MERRA-2 model estimates on a grid of about 50 km) at -17.8°, 178.0°: Viti Levu, Fiji. EONET's area covers the whole western Pacific (mostly ocean); its only source is the ReliefWeb Fiji drought report, so we listen in Fiji. Averaged per week (at least 4 days needed). Event date and place from NASA EONET EONET_212. Built by pipeline/build_event_songs.py."
     },
     {
@@ -154,6 +156,7 @@
       "name": "NASA POWER daily API (T2M), -17.8°, 178.0°",
       "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=PRECTOTCORR,RH2M,T2M&community=AG&longitude=178.0&latitude=-17.8&start=20150720&end=20151115&format=JSON"
      },
+     "sourceKind": "data",
      "method": "Daily T2M from NASA POWER (satellite and MERRA-2 model estimates on a grid of about 50 km) at -17.8°, 178.0°: Viti Levu, Fiji. EONET's area covers the whole western Pacific (mostly ocean); its only source is the ReliefWeb Fiji drought report, so we listen in Fiji. Averaged per week (at least 4 days needed). Event date and place from NASA EONET EONET_212. Built by pipeline/build_event_songs.py."
     }
    ]
@@ -240,6 +243,7 @@
       "name": "NASA POWER daily API (PRECTOTCORR), -32.33°, -58.59°",
       "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=PRECTOTCORR,RH2M,T2M&community=AG&longitude=-58.59&latitude=-32.33&start=20151102&end=20160228&format=JSON"
      },
+     "sourceKind": "data",
      "method": "Daily PRECTOTCORR from NASA POWER (satellite and MERRA-2 model estimates on a grid of about 50 km) at -32.33°, -58.59°: the centre of the area EONET reports. Averaged per week (at least 4 days needed). Event date and place from NASA EONET EONET_259. Built by pipeline/build_event_songs.py."
     },
     {
@@ -276,6 +280,7 @@
       "name": "NASA POWER daily API (RH2M), -32.33°, -58.59°",
       "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=PRECTOTCORR,RH2M,T2M&community=AG&longitude=-58.59&latitude=-32.33&start=20151102&end=20160228&format=JSON"
      },
+     "sourceKind": "data",
      "method": "Daily RH2M from NASA POWER (satellite and MERRA-2 model estimates on a grid of about 50 km) at -32.33°, -58.59°: the centre of the area EONET reports. Averaged per week (at least 4 days needed). Event date and place from NASA EONET EONET_259. Built by pipeline/build_event_songs.py."
     },
     {
@@ -311,6 +316,7 @@
       "name": "NASA POWER daily API (T2M), -32.33°, -58.59°",
       "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=PRECTOTCORR,RH2M,T2M&community=AG&longitude=-58.59&latitude=-32.33&start=20151102&end=20160228&format=JSON"
      },
+     "sourceKind": "data",
      "method": "Daily T2M from NASA POWER (satellite and MERRA-2 model estimates on a grid of about 50 km) at -32.33°, -58.59°: the centre of the area EONET reports. Averaged per week (at least 4 days needed). Event date and place from NASA EONET EONET_259. Built by pipeline/build_event_songs.py."
     }
    ]
@@ -396,6 +402,7 @@
       "name": "NASA POWER daily API (T2M), -29.32°, 152.13°",
       "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,RH2M,WS10M&community=AG&longitude=152.13&latitude=-29.32&start=20191025&end=20200220&format=JSON"
      },
+     "sourceKind": "data",
      "method": "Daily T2M from NASA POWER (satellite and MERRA-2 model estimates on a grid of about 50 km) at -29.32°, 152.13°: the point where EONET reports the event. Averaged per week (at least 4 days needed). Event date and place from NASA EONET EONET_4542. Built by pipeline/build_event_songs.py."
     },
     {
@@ -432,6 +439,7 @@
       "name": "NASA POWER daily API (RH2M), -29.32°, 152.13°",
       "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,RH2M,WS10M&community=AG&longitude=152.13&latitude=-29.32&start=20191025&end=20200220&format=JSON"
      },
+     "sourceKind": "data",
      "method": "Daily RH2M from NASA POWER (satellite and MERRA-2 model estimates on a grid of about 50 km) at -29.32°, 152.13°: the point where EONET reports the event. Averaged per week (at least 4 days needed). Event date and place from NASA EONET EONET_4542. Built by pipeline/build_event_songs.py."
     },
     {
@@ -467,6 +475,7 @@
       "name": "NASA POWER daily API (WS10M), -29.32°, 152.13°",
       "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,RH2M,WS10M&community=AG&longitude=152.13&latitude=-29.32&start=20191025&end=20200220&format=JSON"
      },
+     "sourceKind": "data",
      "method": "Daily WS10M from NASA POWER (satellite and MERRA-2 model estimates on a grid of about 50 km) at -29.32°, 152.13°: the point where EONET reports the event. Averaged per week (at least 4 days needed). Event date and place from NASA EONET EONET_4542. Built by pipeline/build_event_songs.py."
     }
    ]

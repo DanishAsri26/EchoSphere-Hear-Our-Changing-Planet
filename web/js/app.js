@@ -7,6 +7,20 @@
   const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // Where a layer's numbers come from (layer.sourceKind, set by the pipeline). The challenge is about
+  // sonifying NASA visualizations, so every album and layer says which kind it is.
+  const KINDS = {
+    visual:  { icon: "🎨", short: "decoded from a NASA visualization", badge: "Sonifies a NASA visualization",
+               long: "Decoded from the colours of a NASA visualization (map or video) using its colour legend." },
+    vizdata: { icon: "📄", short: "NASA values behind a visualization", badge: "From the data behind a NASA visualization",
+               long: "NASA's own numbers, published together with the visualization (not read from its pixels)." },
+    data:    { icon: "📈", short: "NASA data, no visualization", badge: "From NASA data, no visualization",
+               long: "Taken directly from a NASA data service or file, not from a visualization." },
+  };
+  const kindOf = l => KINDS[l.sourceKind] || KINDS.data;
+  const albumKind = s => ["visual", "vizdata", "data"].map(k => KINDS[k]).find(k => s.layers.some(l => kindOf(l) === k));
+  const kindChip = l => `${l.icon} ${l.name} <span class="kind" title="${kindOf(l).long}" aria-hidden="true">${kindOf(l).icon}</span><span class="sr-only">, ${kindOf(l).short}</span>`;
+
   const engine = new EchoAudio.Engine();
   const chart = new EchoChart($("#chart"));
   const state = { song: null, genre: "orchestra", muted: new Set(), solo: null, idx: 0, ready: false, lastMonth: null };
@@ -87,7 +101,8 @@
           <h2>${s.title}</h2>
           <p>${s.subtitle}</p>
           <p>${s.place} · ${s.period}</p>
-          <div class="chips">${s.layers.map(l => `<span class="chip">${l.icon} ${l.name}</span>`).join("")}</div>
+          <p class="kind-badge kind-${s.layers.some(l => l.sourceKind === "visual") ? "visual" : "other"}"><span aria-hidden="true">${albumKind(s).icon}</span> ${albumKind(s).badge}</p>
+          <div class="chips">${s.layers.map(l => `<span class="chip">${kindChip(l)}</span>`).join("")}</div>
           <button type="button" class="play small" data-song="${i}" aria-label="Open ${s.title}"><span aria-hidden="true">▶</span> Listen</button>
         </div>
       </article>`).join("");
@@ -246,7 +261,7 @@
     const layers = s.layers.map(l => `
       <h3>${l.icon} ${l.name}</h3>
       <p>${l.describe}</p>
-      <p><b>Units:</b> ${l.units}. <b>Source:</b> <a href="${l.source.url}" target="_blank" rel="noopener">${l.source.name}</a>.<br><b>Method:</b> ${l.method}</p>`).join("");
+      <p><b>Data type:</b> <span aria-hidden="true">${kindOf(l).icon}</span> ${kindOf(l).long}<br><b>Units:</b> ${l.units}. <b>Source:</b> <a href="${l.source.url}" target="_blank" rel="noopener">${l.source.name}</a>.<br><b>Method:</b> ${l.method}</p>`).join("");
     const rows = s.steps.map((d, i) => `<tr><td>${fmtDate(s, d)}</td>${s.layers.map(l => `<td>${fmtNum(l.values[i])}</td>`).join("")}</tr>`).join("");
     $("#drawer-body").innerHTML = `
       <p>Every note comes from NASA data. ${s.intro ? s.intro : s.live ? "This song was fetched live from NASA's EONET and POWER services." : "Map colours were turned back into numbers using each map's colour legend, and checked against exact frames."}</p>
@@ -347,6 +362,8 @@
     live("Back to the jukebox.");
   }
 
+  $("#kinds-legend").innerHTML = "Where each album's numbers come from: " +
+    Object.values(KINDS).map(k => `<span><span aria-hidden="true">${k.icon}</span> ${k.short}</span>`).join(" · ");
   renderHome(); renderDrawer(); bind();
-  window.EchoApp = { openSong, goHome, live, state };
+  window.EchoApp = { openSong, goHome, live, state, KINDS, kindOf };
 })();

@@ -12,12 +12,14 @@ Outputs:
   web/data/event_songs.js     same content; adds the songs to window.ECHO_SONGS
   raw/events/<id>_eonet.json, raw/events/<id>_power.json   the exact NASA responses
 
-Usage (from the project root, needs internet): python pipeline/build_event_songs.py
+Usage (from the project root): python -X utf8 pipeline/build_event_songs.py
+  Rebuilds from the saved NASA responses in raw/events/; add --refresh to download them again (needs internet).
 Code written with AI assistance (Claude, Anthropic).
 """
 import datetime as dt
 import json
 import os
+import sys
 import urllib.request
 
 EONET = "https://eonet.gsfc.nasa.gov/api/v3/events/"
@@ -56,7 +58,13 @@ EVENTS = [
 ]
 
 
+REFRESH = "--refresh" in sys.argv  # default: rebuild from the saved NASA responses in raw/events/
+
+
 def get_json(url, save_as):
+    if not REFRESH and os.path.exists(save_as):
+        with open(save_as, encoding="utf-8") as f:
+            return json.load(f)
     with urllib.request.urlopen(url, timeout=90) as r:
         data = json.load(r)
     with open(save_as, "w", encoding="utf-8") as f:
@@ -130,6 +138,7 @@ def build(spec):
         param = p.pop("param")
         layers.append(dict(id=k, **p, values=weekly(param),
                            source=dict(name=f"NASA POWER daily API ({param}), {lat}°, {lon}°", url=url),
+                           sourceKind="data",  # NASA data API, no visualization
                            method=(f"Daily {param} from NASA POWER (satellite and MERRA-2 model estimates on a grid of about 50 km) "
                                    f"at {lat}°, {lon}°: {where}. Averaged per week (at least 4 days needed). "
                                    f"Event date and place from NASA EONET {spec['id']}. Built by pipeline/build_event_songs.py.")))

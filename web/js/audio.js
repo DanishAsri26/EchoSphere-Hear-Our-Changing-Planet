@@ -33,11 +33,11 @@
     orchestra: { label: "Orchestra", bpm: 100, reverb: 3.2, wet: 0.35, bed: false,
                  instruments: ["trumpet", "tuba", "bassoon", "harp", "cello", "marimba"],
                  layers: { fire: "trumpet", rain: "harp", co2: "bassoon", sea: "cello",
-                           temp: "trumpet", humidity: "bassoon", wind: "marimba" }, accent: "timpani" },
+                           temp: "trumpet", humidity: "bassoon", wind: "marimba", diatoms: "cello" }, accent: "timpani" },
     band:      { label: "Modern Band", bpm: 120, reverb: 1.4, wet: 0.18, bed: true,
                  instruments: ["saxophone", "electric_piano_1", "guitar-electric", "bass-electric", "pad_2_warm"],
                  layers: { fire: "saxophone", rain: "electric_piano_1", co2: "bass-electric", sea: "pad_2_warm",
-                           temp: "guitar-electric", humidity: "pad_2_warm", wind: "saxophone" }, accent: "timpani" },
+                           temp: "guitar-electric", humidity: "pad_2_warm", wind: "saxophone", diatoms: "pad_2_warm" }, accent: "timpani" },
   };
 
   /** Instrument key for a layer: a Studio layer may carry its own `instrument`, otherwise the genre's choice. */

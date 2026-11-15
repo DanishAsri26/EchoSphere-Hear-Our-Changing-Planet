@@ -23,7 +23,7 @@
     await say("This is low.", live);   engine.preview(first, "C3", "2n"); await wait(1100);
     await say("This is middle.", live); engine.preview(first, "C4", "2n"); await wait(1100);
     await say("This is high.", live);   engine.preview(first, "C5", "2n"); await wait(1100);
-    const unit = { week: "one week", month: "one month", slice: "one slice of the picture, from west to east" }[song.stepUnit] || "one step";
+    const unit = { week: "one week", month: "one month", quarter: "three months", slice: "one slice of the picture, from west to east" }[song.stepUnit] || "one step";
     await say(`Higher notes mean more. In ${song.title}, each note is ${unit}.`, live);
     // per layer: its instrument, plus the special sounds this song uses
     const parts = song.layers.map(l => `${l.name}: ${engine.instrumentFor(l.id)}` +

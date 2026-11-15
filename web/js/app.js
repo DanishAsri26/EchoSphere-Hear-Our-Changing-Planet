@@ -31,11 +31,12 @@
 
   function fmtDate(song, d) {
     if (song.stepUnit === "slice") return d; // snapshot songs: "Slice 3 of 32"
+    if (song.stepUnit === "quarter") return `Q${Math.floor((parseInt(d.slice(5, 7), 10) - 1) / 3) + 1} ${d.slice(0, 4)} (approx.)`; // album 6
     const m = MONTHS[parseInt(d.slice(5, 7), 10) - 1], y = d.slice(0, 4);
     if (song.stepUnit === "week") return `${parseInt(d.slice(8, 10), 10)} ${m.slice(0, 3)} ${y}`;
     return `${m} ${y}`;
   }
-  const fmtNum = v => v === null || v === undefined ? "—" : (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1));
+  const fmtNum = (v, digits) => v === null || v === undefined ? "—" : digits ? v.toFixed(digits) : (Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(1));
 
   /* ---------- Map view ---------- */
   const MAPS = window.ECHO_MAPS || {};
@@ -237,7 +238,7 @@
     for (const l of state.song.layers) {
       const e = engine.events[l.id][i], box = document.getElementById(`val-${l.id}`);
       if (!box || !e) continue;
-      box.innerHTML = `${fmtNum(e.value)} <small>${l.units.split(" (")[0]}</small>`;
+      box.innerHTML = `${fmtNum(e.value, l.digits)} <small>${l.units.split(" (")[0]}</small>`;
       const bars = document.querySelectorAll(`.strip[data-layer="${l.id}"] .meter i`);
       const lvl = e.midi === null ? 0 : Math.round((e.n ?? 0) * 4) + 1;
       bars.forEach((b, k) => { b.classList.toggle("on", k < lvl); b.style.height = (30 + k * 17) + "%"; });
@@ -277,7 +278,7 @@
     const parts = state.song.layers.map(l => {
       const e = engine.events[l.id][i];
       if (e && e.midi !== null) engine.preview(l.id, e.note, "8n");
-      return `${l.name} ${fmtNum(e.value)} ${l.units.split(" (")[0]}`;
+      return `${l.name} ${fmtNum(e.value, l.digits)} ${l.units.split(" (")[0]}`;
     });
     live(`${fmtDate(state.song, state.song.steps[i])}. ${parts.join(". ")}.`);
   }
@@ -289,7 +290,7 @@
       <h3>${l.icon} ${l.name}</h3>
       <p>${l.describe}</p>
       <p><b>Data type:</b> <span aria-hidden="true">${kindOf(l).icon}</span> ${kindOf(l).long}<br><b>Units:</b> ${l.units}. <b>Source:</b> <a href="${l.source.url}" target="_blank" rel="noopener">${l.source.name}</a>.<br><b>Method:</b> ${l.method}</p>`).join("");
-    const rows = s.steps.map((d, i) => `<tr><td>${fmtDate(s, d)}</td>${s.layers.map(l => `<td>${fmtNum(l.values[i])}</td>`).join("")}</tr>`).join("");
+    const rows = s.steps.map((d, i) => `<tr><td>${fmtDate(s, d)}</td>${s.layers.map(l => `<td>${fmtNum(l.values[i], l.digits)}</td>`).join("")}</tr>`).join("");
     $("#drawer-body").innerHTML = `
       <p>Every note comes from NASA data. ${s.intro ? s.intro : s.live ? "This song was fetched live from NASA's EONET and POWER services." : "Map colours were turned back into numbers using each map's colour legend, and checked against exact frames."}</p>
       <h3>Now showing: ${s.title}</h3>${layers}
@@ -319,7 +320,7 @@
   /* How to listen: built from the song's own layers (each album card has its own guide button). */
   let guideSong = null;
   const escH = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const STEP_WORDS = { week: "one week", month: "one month", slice: "one slice of the picture, read from west to east" };
+  const STEP_WORDS = { week: "one week", month: "one month", quarter: "three months (one quarter; dates are approximate)", slice: "one slice of the picture, read from west to east" };
   const side = p => (p > 0.1 ? "on the right" : p < -0.1 ? "on the left" : "in the centre");
   function guideInstrument(s, l) {
     if (s === state.song && state.ready) return engine.instrumentFor(l.id);

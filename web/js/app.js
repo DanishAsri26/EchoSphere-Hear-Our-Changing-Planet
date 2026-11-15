@@ -123,12 +123,16 @@
           <p>${s.place} · ${s.period}</p>
           <p class="kind-badge kind-${s.layers.some(l => l.sourceKind === "visual") ? "visual" : "other"}"><span aria-hidden="true">${albumKind(s).icon}</span> ${albumKind(s).badge}</p>
           <div class="chips">${s.layers.map(l => `<span class="chip">${kindChip(l)}</span>`).join("")}</div>
-          <button type="button" class="play small" data-song="${i}" aria-label="Open ${s.title}"><span aria-hidden="true">▶</span> Listen</button>
+          <div class="card-actions">
+            <button type="button" class="play small" data-song="${i}" aria-label="Open ${s.title}"><span aria-hidden="true">▶</span> Listen</button>
+            <button type="button" class="ghost" data-guide="${i}" aria-label="How to listen to ${s.title}">How to listen</button>
+          </div>
         </div>
       </article>`).join("");
     // move the fallback behind the image (image loads on top when present)
     document.querySelectorAll(".album .disc").forEach(d => d.prepend(d.querySelector(".disc-fallback")));
     $("#albums").querySelectorAll("button[data-song]").forEach(b => b.addEventListener("click", () => openSong(+b.dataset.song)));
+    $("#albums").querySelectorAll("button[data-guide]").forEach(b => b.addEventListener("click", () => openGuide(DATA.songs[+b.dataset.guide])));
   }
 
   /* ---------- Player ---------- */
@@ -312,18 +316,48 @@
   }
 
   /* ---------- Guide ---------- */
-  function openGuide() {
-    const s = state.song || DATA.songs[0], g = EchoAudio.GENRES[state.genre];
-    $("#guide-instruments").textContent = `${g.label}: ` + s.layers.map(l => `${l.icon} ${l.name} = ${EchoAudio.SAMPLES[EchoAudio.instrumentKey(l, g.layers)].label}`).join(" · ");
+  /* How to listen: built from the song's own layers (each album card has its own guide button). */
+  let guideSong = null;
+  const escH = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const STEP_WORDS = { week: "one week", month: "one month", slice: "one slice of the picture, read from west to east" };
+  const side = p => (p > 0.1 ? "on the right" : p < -0.1 ? "on the left" : "in the centre");
+  function guideInstrument(s, l) {
+    if (s === state.song && state.ready) return engine.instrumentFor(l.id);
+    return EchoAudio.SAMPLES[EchoAudio.instrumentKey(l, EchoAudio.GENRES[state.genre].layers)].label;
+  }
+  function guideItems(s) {
+    if (!s) return [
+      "<b>Low, middle, high.</b> Higher notes mean <i>more</i> of what a layer measures; lower notes mean less.",
+      "<b>Each topic has its own instrument</b> and its own place in your headphones. Use Mute and Solo to hear one at a time.",
+      "<b>Silence</b> means no data, or for rain, almost no rain (drought).",
+      "Each album has its <b>own guide</b>: press <b>How to listen</b> on its card, or <kbd>H</kbd> while it plays.",
+    ];
+    const n = s.layers.length;
+    return [
+      `<b>${escH(s.title)}</b>${s.place ? `: ${escH(s.place)}` : ""}. Each note is ${STEP_WORDS[s.stepUnit] || "one step"} (${escH(s.period)}). <b>Higher notes mean more</b>, lower notes mean less.`,
+      ...s.layers.map(l => `<b>${l.icon} ${escH(l.name)}</b>: <b>${escH(guideInstrument(s, l))}</b>, ${side(l.pan || 0)} of your headphones. ${escH(l.describe || "")}`),
+      `<b>Hear one at a time</b> with Mute and Solo: keys <kbd>1</kbd>–<kbd>${n}</kbd>, and <kbd>Shift</kbd>+number for solo. When paused, <kbd>←</kbd> <kbd>→</kbd> step through and read each value.`,
+    ];
+  }
+  /** Open the guide for a song (an album card's button), the playing song, or the general rules. */
+  function openGuide(song) {
+    const s = song && song.layers ? song : (!$("#view-player").hidden ? state.song : null);
+    guideSong = s;
+    $("#guide-title").textContent = s ? `How to listen: ${s.title}` : "How to listen";
+    $("#guide-list").innerHTML = guideItems(s).map(t => `<li>${t}</li>`).join("");
+    $("#guide-instruments").textContent = s ? `${EchoAudio.GENRES[state.genre].label}: ` + s.layers.map(l => `${l.icon} ${l.name} = ${guideInstrument(s, l)}`).join(" · ") : "";
+    $("#guide-play").textContent = `▶ Play the 15-second guide${s ? "" : ` (${DATA.songs[0].title})`}`;
     $("#guide").showModal();
   }
   async function playGuide() {
-    if (!state.song) { await openSong(0); }
+    const target = guideSong || DATA.songs[0];
+    if (state.song !== target || $("#view-player").hidden) { await openSong(target); }
     if (!state.ready) return;
     if (engine.playing) { engine.pause(); setPlayUI(); }
     await Tone.start();
     $("#guide-play").disabled = true;
     await EchoGuide.playGuide(engine, state.song, live);
+    $("#guide-play").focus();
     $("#guide-play").disabled = false;
   }
 
@@ -359,7 +393,7 @@
       } catch (err) { $("#save-status").textContent = "Saving failed: " + err.message; }
       b.disabled = false; setPlayUI();
     });
-    $("#btn-guide").addEventListener("click", openGuide);
+    $("#btn-guide").addEventListener("click", () => openGuide());
     $("#guide-close").addEventListener("click", () => { if ("speechSynthesis" in window) speechSynthesis.cancel(); $("#guide").close(); });
     $("#guide-play").addEventListener("click", playGuide);
     $("#btn-credits").addEventListener("click", () => openDrawer($("#drawer").hidden));

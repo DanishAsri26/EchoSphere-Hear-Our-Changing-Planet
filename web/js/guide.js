@@ -16,15 +16,18 @@
     });
   }
 
-  /** Plays low / middle / high on the fire instrument, then explains the rules. ~15 s. */
+  /** Plays low / middle / high on the song's first instrument, then explains this song's layers. ~15 s. */
   async function playGuide(engine, song, live) {
     const g = EchoAudio.GENRES[engine.genre];
     const first = song.layers[0].id;
     await say("This is low.", live);   engine.preview(first, "C3", "2n"); await wait(1100);
     await say("This is middle.", live); engine.preview(first, "C4", "2n"); await wait(1100);
     await say("This is high.", live);   engine.preview(first, "C5", "2n"); await wait(1100);
-    await say("Higher notes mean more. More fire, more rain, more carbon dioxide, higher seas. Silence in the rain means drought.", live);
-    const parts = song.layers.map(l => `${l.name}: ${engine.instrumentFor(l.id)}`).join(". ");
+    const unit = { week: "one week", month: "one month", slice: "one slice of the picture, from west to east" }[song.stepUnit] || "one step";
+    await say(`Higher notes mean more. In ${song.title}, each note is ${unit}.`, live);
+    // per layer: its instrument, plus the special sounds this song uses
+    const parts = song.layers.map(l => `${l.name}: ${engine.instrumentFor(l.id)}` +
+      (l.restBelow !== undefined ? ", silence means almost none" : "") + (l.intensity ? ", a drum hit means very intense" : "")).join(". ");
     await say(`In ${g.label}, ${parts}.`, live);
   }
 

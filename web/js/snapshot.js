@@ -50,7 +50,7 @@
   };
 
   const sn = { img: null, src: null, file: "", editing: -1, mode: "area", scale: "legend",
-               area: Object.assign({}, WHOLE), legend: { x: 10, y: 88, w: 80, h: 6 }, layers: [] };
+               area: Object.assign({}, WHOLE), legend: { x: 0, y: 0, w: 0, h: 0 }, legendSet: false, layers: [] };
 
   /* ---------- decoding ---------- */
   function pixels(img) {
@@ -185,7 +185,7 @@
       <label class="ctl" for="snap-file">Add a picture</label>
       <input type="file" id="snap-file" accept="image/png,image/jpeg,image/webp,image/gif">
       <div id="snap-edit" hidden>
-        <p class="hint" id="snap-help">① Choose the <b>map area</b> you want to hear (start: the whole picture). ② Mark the <b>colour legend</b>: cover only its coloured part, not "no data" squares or arrows. Drag on the picture, or type the boxes below (in % of the picture).</p>
+        <p class="hint" id="snap-help">① Choose the <b>map area</b> you want to hear (start: the whole picture). ② If the picture has a colour legend, choose <b>② Legend</b> and drag over its coloured part (not "no data" squares or arrows); the pink box appears only once you mark it. You can also type the boxes below (in % of the picture).</p>
         <fieldset class="snap-boxset snap-scale" id="snap-scale-set"><legend>How should the colours be read?</legend>
           ${Object.entries(SCALES).map(([k, v]) => `<label class="ctl"><input type="radio" name="snap-scale" value="${k}"${k === "legend" ? " checked" : ""}> ${v.label}</label>`).join("")}
           <label class="ctl">What do the colours show? <input type="text" id="snap-what" maxlength="30" placeholder="e.g. rain, fire, heat"></label>
@@ -212,7 +212,7 @@
     $("#snap-file").addEventListener("change", onFile);
     ["x", "y", "w", "h"].forEach(k => {
       $(`#snap-a-${k}`).addEventListener("input", e => { sn.area[k] = +e.target.value || 0; draw(); });
-      $(`#snap-${k}`).addEventListener("input", e => { sn.legend[k] = +e.target.value || 0; draw(); });
+      $(`#snap-${k}`).addEventListener("input", e => { sn.legend[k] = +e.target.value || 0; sn.legendSet = true; draw(); });
     });
     document.querySelectorAll('input[name="snap-mode"]').forEach(r => r.addEventListener("change", () => {
       sn.mode = r.value; draw();
@@ -239,7 +239,7 @@
   }
 
   const status = msg => { $("#snap-status").textContent = msg; live(msg); };
-  const fillInputs = () => ["x", "y", "w", "h"].forEach(k => { $(`#snap-a-${k}`).value = sn.area[k]; $(`#snap-${k}`).value = sn.legend[k]; });
+  const fillInputs = () => ["x", "y", "w", "h"].forEach(k => { $(`#snap-a-${k}`).value = sn.area[k]; $(`#snap-${k}`).value = sn.legendSet ? sn.legend[k] : ""; });
 
   function openEditor(img, src, file) {
     sn.img = img; sn.src = src; sn.file = file;
@@ -256,7 +256,7 @@
     closeEditor();
     const src = URL.createObjectURL(f), img = new Image();
     img.onload = () => {
-      sn.editing = -1; sn.area = Object.assign({}, WHOLE);
+      sn.editing = -1; sn.area = Object.assign({}, WHOLE); sn.legend = { x: 0, y: 0, w: 0, h: 0 }; sn.legendSet = false;
       $("#snap-name").value = `Picture ${sn.layers.length + 1}`; $("#snap-what").value = "";
       openEditor(img, src, clean(f.name, 60));
       setMode("area"); setScale("legend");
@@ -273,7 +273,7 @@
     closeEditor();
     const img = new Image();
     img.onload = () => {
-      sn.editing = i; sn.area = Object.assign({}, l.area); sn.legend = Object.assign({}, l.legend);
+      sn.editing = i; sn.area = Object.assign({}, l.area); sn.legend = Object.assign({}, l.legend); sn.legendSet = (l.scale || "legend") === "legend";
       $("#snap-low").value = l.low; $("#snap-high").value = l.high; $("#snap-units").value = l.units;
       $("#snap-name").value = l.name; $("#snap-rev").checked = l.reverse; $("#snap-what").value = l.what || "";
       openEditor(img, l.src, l.file);
@@ -306,11 +306,11 @@
     g.beginPath(); g.rect(0, 0, W, H); g.rect(a.x / 100 * W, a.y / 100 * H, a.w / 100 * W, a.h / 100 * H); g.fill("evenodd");
     g.lineWidth = sn.mode === "area" ? 4 : 2; g.strokeStyle = "#4FC3F7"; g.setLineDash([]);
     g.strokeRect(a.x / 100 * W, a.y / 100 * H, a.w / 100 * W, a.h / 100 * H);
-    if (sn.scale === "legend") {
+    if (sn.scale === "legend" && sn.legendSet) {
       g.lineWidth = sn.mode === "legend" ? 4 : 2; g.strokeStyle = "#FF5EA8"; g.setLineDash([8, 5]);
       g.strokeRect(L.x / 100 * W, L.y / 100 * H, L.w / 100 * W, L.h / 100 * H);
     }
-    c.setAttribute("aria-label", `Your picture ${sn.file}. Map area: ${pct(a)}.${sn.scale === "legend" ? ` Legend box: ${pct(L)}.` : " No legend box."}`);
+    c.setAttribute("aria-label", `Your picture ${sn.file}. Map area: ${pct(a)}.${sn.scale !== "legend" ? " No legend box." : sn.legendSet ? ` Legend box: ${pct(L)}.` : " No legend marked yet."}`);
   }
 
   function pointer() {
@@ -320,7 +320,7 @@
     c.addEventListener("pointermove", e => {
       if (!start) return; const p = pos(e), r1 = v => Math.round(v * 2) / 2;
       const b = { x: r1(Math.min(start.x, p.x)), y: r1(Math.min(start.y, p.y)), w: Math.max(0.5, r1(Math.abs(p.x - start.x))), h: Math.max(0.5, r1(Math.abs(p.y - start.y))) };
-      if (sn.mode === "area" || sn.scale !== "legend") sn.area = b; else sn.legend = b;
+      if (sn.mode === "area" || sn.scale !== "legend") sn.area = b; else { sn.legend = b; sn.legendSet = true; }
       fillInputs(); draw();
     });
     c.addEventListener("pointerup", () => { start = null; });
@@ -335,6 +335,7 @@
     if (!isFinite(low) || !isFinite(high) || low === high) { status("Type the legend's low and high values (they must be different numbers)."); $("#snap-low").focus(); return; }
     const area = Object.assign({}, sn.area), legend = Object.assign({}, sn.legend);
     if (outside(area) || area.w < 3 || area.h < 3) { status("The map area is outside the picture or too small. Check its Left, Top, Width and Height."); $("#snap-a-x").focus(); return; }
+    if (!noLegend && !sn.legendSet) { status('This picture is set to "has a colour legend", but no legend is marked yet. Choose ② Legend and drag over the colour bar, or pick a "No legend" option if the picture has none.'); const r = document.querySelector('input[name="snap-mode"][value="legend"]'); if (r) r.focus(); return; }
     if (!noLegend && outside(legend)) { status("The legend box is outside the picture. Check its Left, Top, Width and Height."); $("#snap-x").focus(); return; }
     const reverse = $("#snap-rev").checked;
     const { values, matched, flat, picture } = decode(sn.img, area, legend, reverse, low, high, scale);
